@@ -32,17 +32,8 @@
 
 #include "test_load_file_constants.h"
 
-TEST(test_load, file)
+void Loaded(Ignorelib::IgnoreFile&& file)
 {
-    std::ofstream fileToRead {".test_load_file"};
-    for (const std::string_view& line : lines) fileToRead << line << '\n';
-    fileToRead.close();
-
-    std::ifstream handle {".test_load_file"};
-    ASSERT_TRUE(handle.is_open());
-
-    Ignorelib::IgnoreFile file {".test_load_file"};
-
     ASSERT_EQ(numPatterns, file._patterns.size());
 
     for (int i = 0; i < numPatterns; ++i)
@@ -52,6 +43,17 @@ TEST(test_load, file)
         EXPECT_EQ(patterns[i], pattern.first);
         EXPECT_EQ(patternNegated[i], pattern.second);
     }
+}
+
+TEST(test_load, file)
+{
+    std::ofstream fileToRead {".test_load_file"};
+    for (const std::string_view& line : lines) fileToRead << line << '\n';
+    fileToRead.close();
+
+    Ignorelib::IgnoreFile file {".test_load_file"};
+
+    Loaded(std::move(file));
 }
 
 TEST(test_load, re_list)
@@ -65,13 +67,12 @@ TEST(test_load, re_list)
 
     Ignorelib::IgnoreFile file {patternMap};
 
-    ASSERT_EQ(numPatterns, file._patterns.size());
+    Loaded(std::move(file));
+}
 
-    for (int i = 0; i < numPatterns; ++i)
-    {
-        const auto& pattern = file.convToRe(lines[i + 2]);
+TEST(test_load, string_list)
+{
+    Ignorelib::IgnoreFile file {lines};
 
-        EXPECT_EQ(patterns[i], pattern.first);
-        EXPECT_EQ(patternNegated[i], pattern.second);
-    }
+    Loaded(std::move(file));
 }
