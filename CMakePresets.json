@@ -12,8 +12,8 @@
       "binaryDir": "${sourceDir}/build",
       "hidden": true,
       "cacheVariables": {
-        "MYLIB_BUILD_TESTS": "ON",
-        "MYLIB_BUILD_EXAMPLES": "ON"
+        "IGNORELIB_BUILD_TESTS": "ON",
+        "IGNORELIB_BUILD_EXAMPLES": "ON"
       }
     },
     {
