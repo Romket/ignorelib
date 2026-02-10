@@ -1,0 +1,46 @@
+# get yoinked leah-nyx
+
+name: pre-commit
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  push:
+    branches: [ "main" ]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+
+      - name: Install Clang-Format 21
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 21
+          sudo apt-get install -y clang-format-21
+          # Create a symlink so 'clang-format' defaults to v21
+          sudo ln -s /usr/bin/clang-format-21 /usr/local/bin/clang-format
+
+      - name: Set up Python  # Recommended way to install pre-commit (supposedly)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Setup pre-commit
+        run: pre-commit install
+
+      - name: Run pre-commit
+        run: pre-commit run --all-files
