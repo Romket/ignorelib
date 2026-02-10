@@ -20,7 +20,7 @@ AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: false
 AlwaysBreakTemplateDeclarations: 'Yes'
 BinPackArguments: true
-BinPackParameters: true
+BinPackParameters: OnePerLine
 BreakBeforeBraces: Custom
 BreakBeforeTernaryOperators: false
 BreakConstructorInitializers: AfterColon
@@ -35,9 +35,9 @@ IndentCaseLabels: true
 IndentWidth: 4
 NamespaceIndentation: All
 PointerAlignment: Left
-ReflowComments: true
+ReflowComments: Always
 SortIncludes: CaseInsensitive
-SortUsingDeclarations: true
+SortUsingDeclarations: Lexicographic
 SpaceAfterCStyleCast: true
 SpaceAfterLogicalNot: false
 SpaceAfterTemplateKeyword: false
