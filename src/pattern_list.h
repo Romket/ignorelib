@@ -1,7 +1,7 @@
 /**
- * @file ignore.h
+ * @file pattern_list.h
  * @author Luke Houston (Romket) (lukehouston08@gmail.com)
- * @brief
+ * @brief PatternList class implementation
  * @version 0.1
  * @date 2026-02-10
  *
@@ -22,6 +22,9 @@
  *
  */
 
-#pragma once
+#include <ignorelib/pattern_list.h>
 
-#include <ignorelib/file.h>
+namespace Ignorelib
+{
+    // PatternList::PatternList()
+} // namespace Ignorelib

@@ -22,9 +22,22 @@
  *
  */
 
-#include <ignorelib/ignorelib.h>
+#include <ignorelib/file.h>
+
+#include <fstream>
 
 namespace Ignorelib
 {
-    void IgnoreFile::loadFile() {}
+    void IgnoreFile::loadFile()
+    {
+        std::ifstream in {_filePath};
+
+        std::string line;
+        while (in >> line)
+        {
+            if (line == "" || line[0] == '#') continue;
+
+            _patterns.push_back(std::move(line));
+        }
+    }
 } // namespace Ignorelib
