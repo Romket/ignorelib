@@ -27,6 +27,7 @@
 #include <filesystem>
 #include <fstream>
 #include <regex>
+#include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -88,6 +89,9 @@ namespace Ignorelib
             swap(*this, std::move(other));
             return *this;
         }
+
+        bool Ignored(const std::string& p);
+        bool Ignored(const std::string&& p);
 
         inline ~IgnoreFile() = default;
 

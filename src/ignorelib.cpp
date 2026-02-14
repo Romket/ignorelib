@@ -28,6 +28,30 @@
 
 namespace Ignorelib
 {
+    bool IgnoreFile::Ignored(const std::string& p)
+    {
+        bool ignored = false;
+
+        for (const std::pair<std::regex, bool>& pattern : _patterns)
+        {
+            if (std::regex_match(p, pattern.first)) ignored = !pattern.second;
+        }
+
+        return ignored;
+    }
+
+    bool IgnoreFile::Ignored(const std::string&& p)
+    {
+        bool ignored = false;
+
+        for (const std::pair<std::regex, bool>& pattern : _patterns)
+        {
+            if (std::regex_match(p, pattern.first)) ignored = !pattern.second;
+        }
+
+        return ignored;
+    }
+
     void IgnoreFile::readFile(std::ifstream&& fileHandle)
     {
         if (!fileHandle.is_open())
