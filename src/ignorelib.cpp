@@ -43,11 +43,13 @@ namespace Ignorelib
         }
     }
 
-    std::regex IgnoreFile::convToRe(std::string_view sv)
+    std::pair<std::regex, bool> IgnoreFile::convToRe(std::string_view sv)
     {
         std::string regexStr;
 
-        for (size_t i = 0; i < sv.size(); ++i)
+        bool track = sv[0] == '!';
+
+        for (size_t i = track; i < sv.size(); ++i)
         {
             switch (sv[i])
             {
@@ -69,11 +71,12 @@ namespace Ignorelib
                         regexStr += "[!/\\\\]*";
                     break;
                 case '.': regexStr += "\\."; break;
-                case '#': return std::regex(std::move(regexStr));
+                case '#':
+                    return {std::regex(std::move(regexStr)), std::move(track)};
                 default: regexStr.push_back(sv[i]);
             }
         }
 
-        return std::regex(std::move(regexStr));
+        return {std::regex(std::move(regexStr)), std::move(track)};
     }
 } // namespace Ignorelib

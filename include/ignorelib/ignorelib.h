@@ -28,6 +28,7 @@
 #include <fstream>
 #include <regex>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 namespace Ignorelib
@@ -46,14 +47,14 @@ namespace Ignorelib
         }
 
         explicit inline IgnoreFile(
-            const std::vector<std::regex>& patterns) noexcept :
+            const std::vector<std::pair<std::regex, bool>>& patterns) noexcept :
             _patterns {patterns}
         {
         }
 
         explicit inline IgnoreFile(
-            const std::vector<std::regex>&& patterns) noexcept :
-            _patterns {std::move(patterns)}
+            const std::vector<std::pair<std::regex, bool>>&& patterns) noexcept
+            : _patterns {std::move(patterns)}
         {
         }
 
@@ -112,8 +113,8 @@ namespace Ignorelib
 
         void readFile(std::ifstream&& fileHandle);
 
-        std::regex convToRe(std::string_view sv);
+        std::pair<std::regex, bool> convToRe(std::string_view sv);
 
-        std::vector<std::regex> _patterns;
+        std::vector<std::pair<std::regex, bool>> _patterns;
     };
 } // namespace Ignorelib
