@@ -69,3 +69,5 @@ endif()
 
 include(GoogleTest)
 gtest_discover_tests(ignorelib-tests)
+
+#TODO: get test files to copy into the build directory

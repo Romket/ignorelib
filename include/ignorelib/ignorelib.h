@@ -25,22 +25,38 @@
 #pragma once
 
 #include <filesystem>
+#include <fstream>
+#include <regex>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 namespace Ignorelib
 {
     class IgnoreFile
     {
     public:
-        explicit inline IgnoreFile(const std::filesystem::path& path) noexcept :
-            _filePath(path)
+        explicit inline IgnoreFile(const std::filesystem::path& path) noexcept
         {
-            loadFile();
+            loadFile(path);
         }
 
         explicit inline IgnoreFile(const std::filesystem::path&& path) noexcept
-            : _filePath(std::move(path))
         {
-            loadFile();
+            loadFile(std::move(path));
+        }
+
+        explicit inline IgnoreFile(
+            const std::vector<std::pair<std::regex, bool>>& patterns) noexcept :
+            _patterns {patterns}
+        {
+        }
+
+        explicit inline IgnoreFile(
+            const std::vector<std::pair<std::regex, bool>>&& patterns) noexcept
+            : _patterns {std::move(patterns)}
+        {
         }
 
         inline IgnoreFile(IgnoreFile& other) noexcept { swap(*this, other); }
@@ -52,13 +68,13 @@ namespace Ignorelib
 
         inline IgnoreFile& operator=(const std::filesystem::path& path)
         {
-            _filePath = path;
+            loadFile(path);
             return *this;
         }
 
         inline IgnoreFile& operator=(const std::filesystem::path&& path)
         {
-            _filePath = std::move(path);
+            loadFile(std::move(path));
             return *this;
         }
 
@@ -74,21 +90,35 @@ namespace Ignorelib
             return *this;
         }
 
-        inline friend void swap(IgnoreFile& first, IgnoreFile& second) noexcept
-        {
-            std::swap(first._filePath, second._filePath);
-        }
-
-        inline friend void swap(IgnoreFile& first, IgnoreFile&& second) noexcept
-        {
-            std::swap(first._filePath, second._filePath);
-        }
+        bool Ignored(const std::string& p);
+        bool Ignored(const std::string&& p);
 
         inline ~IgnoreFile() = default;
 
     private:
-        void loadFile();
+        inline friend void swap(IgnoreFile& first, IgnoreFile& second) noexcept
+        {
+            std::swap(first._patterns, second._patterns);
+        }
 
-        std::filesystem::path _filePath;
+        inline friend void swap(IgnoreFile& first, IgnoreFile&& second) noexcept
+        {
+            std::swap(first._patterns, second._patterns);
+        }
+
+        inline void loadFile(const std::filesystem::path& path)
+        {
+            readFile(path);
+        }
+        inline void loadFile(const std::filesystem::path&& path)
+        {
+            readFile(std::move(path));
+        }
+
+        void readFile(std::ifstream&& fileHandle);
+
+        std::pair<std::regex, bool> convToRe(std::string_view sv);
+
+        std::vector<std::pair<std::regex, bool>> _patterns;
     };
 } // namespace Ignorelib
