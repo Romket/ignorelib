@@ -47,5 +47,7 @@ namespace Ignorelib
         "dir\\/[^\\/\\\\]*\\.ext",
         "dir(?:\\/.*\\/|\\/)otherFile"};
 
-    constexpr bool patternNegated[numPatterns] = {false, true};
+    constexpr bool patternNegated[numPatterns] = {
+        false, true, false, false, false, false, false, false, false,
+    };
 }; // namespace Ignorelib
