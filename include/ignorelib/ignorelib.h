@@ -32,6 +32,8 @@
 #include <utility>
 #include <vector>
 
+#include <gtest/gtest_prod.h>
+
 namespace Ignorelib
 {
     class IgnoreFile
@@ -90,10 +92,11 @@ namespace Ignorelib
             return *this;
         }
 
+        inline ~IgnoreFile() = default;
+
+    public:
         bool Ignored(const std::string& p);
         bool Ignored(const std::string&& p);
-
-        inline ~IgnoreFile() = default;
 
     private:
         inline friend void swap(IgnoreFile& first, IgnoreFile& second) noexcept
@@ -119,6 +122,11 @@ namespace Ignorelib
 
         std::pair<std::regex, bool> convToRe(std::string_view sv);
 
+    private:
         std::vector<std::pair<std::regex, bool>> _patterns;
+
+    private:
+        FRIEND_TEST(test_load, file);
+        FRIEND_TEST(test_load, re_list);
     };
 } // namespace Ignorelib

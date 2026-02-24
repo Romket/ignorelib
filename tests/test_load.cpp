@@ -22,8 +22,27 @@
  *
  */
 
-#include <ignorelib/ignorelib.h>
-
 #include <gtest/gtest.h>
 
-TEST(test_load, load_file) { Ignorelib::IgnoreFile file(".test_load_ignore"); }
+#include <ignorelib/ignorelib.h>
+
+#include <fstream>
+
+#include "test_load_file_constants.h"
+
+namespace Ignorelib
+{
+    // cppcheck-suppress syntaxError
+    TEST(test_load, file)
+    {
+        std::ofstream fileToRead {".test_load_file"};
+        for (const std::string_view& line : lines) fileToRead << line;
+
+        Ignorelib::IgnoreFile file {".test_load_file"};
+
+        ASSERT_EQ(numPatterns, file._patterns.size());
+    }
+
+    // cppcheck-suppress syntaxError
+    TEST(test_load, re_list) {}
+} // namespace Ignorelib
