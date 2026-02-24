@@ -79,8 +79,9 @@ namespace Ignorelib
             // TODO: remove all whitespace to make these checks better
             if (line.empty() || line[0] == '#') continue;
 
-            const auto pattern = convToRe(line);
-            _patterns.push_back({std::regex(pattern.first), pattern.second});
+            const auto& pattern = convToRe(line);
+            _patterns.push_back({std::regex(std::move(pattern.first)),
+                                 std::move(pattern.second)});
         }
     }
 
