@@ -120,7 +120,7 @@ namespace Ignorelib
 
         void readFile(std::ifstream&& fileHandle);
 
-        std::pair<std::regex, bool> convToRe(std::string_view sv);
+        std::pair<std::string, bool> convToRe(std::string_view sv);
 
     private:
         std::vector<std::pair<std::regex, bool>> _patterns;

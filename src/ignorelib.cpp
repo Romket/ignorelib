@@ -79,11 +79,12 @@ namespace Ignorelib
             // TODO: remove all whitespace to make these checks better
             if (line.empty() || line[0] == '#') continue;
 
-            _patterns.push_back(convToRe(line));
+            const auto pattern = convToRe(line);
+            _patterns.push_back({std::regex(pattern.first), pattern.second});
         }
     }
 
-    std::pair<std::regex, bool> IgnoreFile::convToRe(std::string_view sv)
+    std::pair<std::string, bool> IgnoreFile::convToRe(std::string_view sv)
     {
         std::string regexStr;
 
@@ -111,12 +112,11 @@ namespace Ignorelib
                         regexStr += "[!/\\\\]*";
                     break;
                 case '.': regexStr += "\\."; break;
-                case '#':
-                    return {std::regex(std::move(regexStr)), std::move(track)};
+                case '#': return {std::move(regexStr), std::move(track)};
                 default: regexStr.push_back(sv[i]);
             }
         }
 
-        return {std::regex(std::move(regexStr)), std::move(track)};
+        return {std::move(regexStr), std::move(track)};
     }
 } // namespace Ignorelib
