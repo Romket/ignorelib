@@ -46,6 +46,22 @@ namespace Ignorelib
 
         for (const std::pair<std::regex, bool>& pattern : _patterns)
         {
+            size_t i;
+            for (i = 0; i < p.length(); ++i)
+            {
+                // TODO: Add windows directory separator checks
+                if (p[i] == '/') break;
+            }
+            std::string dir = p.substr(0, i);
+
+            if (std::regex_match(dir, pattern.first))
+            {
+                // Early return to mimick .gitignore behavior
+                if (dir != p) return !pattern.second;
+
+                ignored = !pattern.second;
+            }
+
             if (std::regex_match(p, pattern.first)) ignored = !pattern.second;
         }
 
