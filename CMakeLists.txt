@@ -11,6 +11,8 @@ project(ignorelib
     DESCRIPTION ".gitignore-style file parser and pattern matcher"
     LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 23)
+
 #----------------------------------------------------------------------------------------------------------------------
 # general settings and options
 #----------------------------------------------------------------------------------------------------------------------
