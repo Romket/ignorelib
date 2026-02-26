@@ -56,16 +56,22 @@ TEST(test_load, file)
 
 TEST(test_load, re_list)
 {
-    Ignorelib::IgnoreFile file {
-        {{std::regex("ignore"), false},
-         {std::regex("negate"), true},
-         {std::regex("charclass[0-9]"), false},
-         {std::regex("file\\.extension"), false},
-         {std::regex("path\\/to"), false},
-         {std::regex("pattern"), false},
-         {std::regex("dir\\/.*"), false},
-         {std::regex("dir\\/[^\\/\\\\]*\\.ext"), false},
-         {std::regex("dir(?:\\/.*\\/|\\/)otherFile"), false}}};
+    std::vector<std::pair<std::regex, bool>> patternMap;
+    for (int i = 0; i < numPatterns; ++i)
+    {
+        patternMap.push_back(
+            {std::regex(std::string(patterns[i])), patternNegated[i]});
+    }
+
+    Ignorelib::IgnoreFile file {patternMap};
 
     ASSERT_EQ(numPatterns, file._patterns.size());
+
+    for (int i = 0; i < numPatterns; ++i)
+    {
+        const auto& pattern = file.convToRe(lines[i + 2]);
+
+        EXPECT_EQ(patterns[i], pattern.first);
+        EXPECT_EQ(patternNegated[i], pattern.second);
+    }
 }
