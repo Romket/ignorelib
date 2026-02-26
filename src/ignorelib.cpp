@@ -74,7 +74,7 @@ namespace Ignorelib
             throw std::invalid_argument("Failed to open file");
 
         std::string line;
-        while (fileHandle >> line)
+        while (std::getline(fileHandle, line))
         {
             // TODO: remove all whitespace to make these checks better
             if (line.empty() || line[0] == '#') continue;
@@ -104,15 +104,21 @@ namespace Ignorelib
                     }
                     break;
                 case '*':
-                    if (i + 1 < sv.size() && sv[i + 1] == '*')
-                    {
-                        regexStr += "?*";
-                        ++i;
-                    }
+                    if (i + 1 == sv.size())
+                        regexStr += ".*";
                     else
-                        regexStr += "[!/\\\\]*";
+                        regexStr += "[^\\/\\\\]*";
                     break;
                 case '.': regexStr += "\\."; break;
+                case '/':
+                    if (i + 3 < sv.size() && sv.substr(i, 4) == "/**/")
+                    {
+                        regexStr += "(?:\\/.*\\/|\\/)";
+                        i += 3;
+                    }
+                    else
+                        regexStr += "\\/";
+                    break;
                 case '#': return {std::move(regexStr), std::move(track)};
                 default: regexStr.push_back(sv[i]);
             }
