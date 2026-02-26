@@ -24,46 +24,48 @@
 
 #include <gtest/gtest.h>
 
+#define IGNORELIB_TESTS
 #include <ignorelib/ignorelib.h>
+#undef IGNORELIB_TESTS
 
 #include <fstream>
 
 #include "test_load_file_constants.h"
 
-namespace Ignorelib
+TEST(test_load, file)
 {
-    // cppcheck-suppress syntaxError
-    TEST(test_load, file)
+    std::ofstream fileToRead {".test_load_file"};
+    for (const std::string_view& line : lines) fileToRead << line << '\n';
+    fileToRead.close();
+
+    std::ifstream handle {".test_load_file"};
+    ASSERT_TRUE(handle.is_open());
+
+    Ignorelib::IgnoreFile file {".test_load_file"};
+
+    ASSERT_EQ(numPatterns, file._patterns.size());
+
+    for (int i = 0; i < numPatterns; ++i)
     {
-        std::ofstream fileToRead {".test_load_file"};
-        for (const std::string_view& line : lines) fileToRead << line;
+        const auto& pattern = file.convToRe(lines[i + 2]);
 
-        IgnoreFile file {".test_load_file"};
-
-        ASSERT_EQ(numPatterns, file._patterns.size());
-
-        for (int i = 0; i < numPatterns; ++i)
-        {
-            const auto& pattern = file.convToRe(lines[i + 2]);
-
-            EXPECT_EQ(patterns[i], pattern.first);
-            EXPECT_EQ(patternNegated[i], pattern.second);
-        }
+        EXPECT_EQ(patterns[i], pattern.first);
+        EXPECT_EQ(patternNegated[i], pattern.second);
     }
+}
 
-    // cppcheck-suppress syntaxError
-    TEST(test_load, re_list)
-    {
-        IgnoreFile file {{{std::regex("ignore"), false},
-                          {std::regex("negate"), true},
-                          {std::regex("charclass[0-9]"), false},
-                          {std::regex("file\\.extension"), false},
-                          {std::regex("path\\/to"), false},
-                          {std::regex("pattern"), false},
-                          {std::regex("dir\\/.*"), false},
-                          {std::regex("dir\\/[^\\/\\\\]*\\.ext"), false},
-                          {std::regex("dir(?:\\/.*\\/|\\/)otherFile"), false}}};
+TEST(test_load, re_list)
+{
+    Ignorelib::IgnoreFile file {
+        {{std::regex("ignore"), false},
+         {std::regex("negate"), true},
+         {std::regex("charclass[0-9]"), false},
+         {std::regex("file\\.extension"), false},
+         {std::regex("path\\/to"), false},
+         {std::regex("pattern"), false},
+         {std::regex("dir\\/.*"), false},
+         {std::regex("dir\\/[^\\/\\\\]*\\.ext"), false},
+         {std::regex("dir(?:\\/.*\\/|\\/)otherFile"), false}}};
 
-        ASSERT_EQ(numPatterns, file._patterns.size());
-    }
-} // namespace Ignorelib
+    ASSERT_EQ(numPatterns, file._patterns.size());
+}

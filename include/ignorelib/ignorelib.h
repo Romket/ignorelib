@@ -34,6 +34,10 @@
 
 #include <gtest/gtest_prod.h>
 
+#ifdef IGNORELIB_TESTS
+#define private public
+#endif
+
 namespace Ignorelib
 {
     class IgnoreFile
@@ -124,9 +128,5 @@ namespace Ignorelib
 
     private:
         std::vector<std::pair<std::regex, bool>> _patterns;
-
-    private:
-        FRIEND_TEST(test_load, file);
-        FRIEND_TEST(test_load, re_list);
     };
 } // namespace Ignorelib

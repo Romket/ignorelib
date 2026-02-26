@@ -24,30 +24,27 @@
 
 #include <string_view>
 
-namespace Ignorelib
-{
-    constexpr int              numLines        = 11;
-    constexpr std::string_view lines[numLines] = {
-        "# ignored",       "",
-        "ignore",          "!negate",
-        "charclass[0-9]",  "file.extension",
-        "path/to",         "pattern# comment",
-        "dir/*",           "dir/*.ext",
-        "dir/**/otherFile"};
+constexpr int              numLines        = 11;
+constexpr std::string_view lines[numLines] = {
+    "# ignored",       "",
+    "ignore",          "!negate",
+    "charclass[0-9]",  "file.extension",
+    "path/to",         "pattern# comment",
+    "dir/*",           "dir/*.ext",
+    "dir/**/otherFile"};
 
-    constexpr int              numPatterns           = 9;
-    constexpr std::string_view patterns[numPatterns] = {
-        "ignore",
-        "negate",
-        "charclass[0-9]",
-        "file\\.extension",
-        "path\\/to",
-        "pattern",
-        "dir\\/.*",
-        "dir\\/[^\\/\\\\]*\\.ext",
-        "dir(?:\\/.*\\/|\\/)otherFile"};
+constexpr int              numPatterns           = 9;
+constexpr std::string_view patterns[numPatterns] = {
+    "ignore",
+    "negate",
+    "charclass[0-9]",
+    "file\\.extension",
+    "path\\/to",
+    "pattern",
+    "dir\\/.*",
+    "dir\\/[^\\/\\\\]*\\.ext",
+    "dir(?:\\/.*\\/|\\/)otherFile"};
 
-    constexpr bool patternNegated[numPatterns] = {
-        false, true, false, false, false, false, false, false, false,
-    };
-}; // namespace Ignorelib
+constexpr bool patternNegated[numPatterns] = {
+    false, true, false, false, false, false, false, false, false,
+};
