@@ -40,7 +40,7 @@ namespace Ignorelib
         return ignored;
     }
 
-    bool IgnoreFile::Ignored(const std::string&& p)
+    bool IgnoreFile::Ignored(std::string&& p)
     {
         bool ignored = false;
 
