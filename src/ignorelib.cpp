@@ -73,8 +73,7 @@ namespace Ignorelib
         if (!fileHandle.is_open())
             throw std::invalid_argument("Failed to open file");
 
-        std::string line;
-        while (std::getline(fileHandle, line))
+        for (std::string line; std::getline(fileHandle, line);)
         {
             // TODO: remove all whitespace to make these checks better
             if (line.empty() || line[0] == '#') continue;
