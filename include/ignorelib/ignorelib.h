@@ -67,6 +67,18 @@ namespace Ignorelib
         {
         }
 
+        explicit IgnoreFile(std::initializer_list<std::string_view>&& range)
+        {
+            for (const std::string_view& p : range)
+            {
+                if (p.empty() || p[0] == '#') continue;
+
+                const auto pattern = convToRe(p);
+                _patterns.push_back({std::regex(std::move(pattern.first)),
+                                     std::move(pattern.second)});
+            }
+        }
+
         template<std::ranges::input_range R>
             requires(std::convertible_to<std::ranges::range_value_t<R>,
                                          std::string_view> &&
