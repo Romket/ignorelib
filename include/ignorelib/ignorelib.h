@@ -78,7 +78,8 @@ namespace Ignorelib
                        std::move(movePatterns.end())}
         {}
 
-        explicit IgnoreFile(std::initializer_list<std::string_view>&& listRange)
+        explicit inline IgnoreFile(
+            std::initializer_list<std::string_view>&& listRange)
         {
             for (std::string_view s : listRange) addPattern(s);
         }
@@ -101,33 +102,11 @@ namespace Ignorelib
             for (std::string_view s : moveRange) addPattern(s);
         }
 
-        inline IgnoreFile(IgnoreFile& other) { swap(*this, other); }
+        explicit inline IgnoreFile(const IgnoreFile& other) = default;
+        explicit inline IgnoreFile(IgnoreFile&& other)      = default;
 
-        inline IgnoreFile(IgnoreFile&& other) { swap(*this, std::move(other)); }
-
-        inline IgnoreFile& operator=(const std::filesystem::path& path)
-        {
-            readFile(path);
-            return *this;
-        }
-
-        inline IgnoreFile& operator=(std::filesystem::path&& path)
-        {
-            readFile(std::move(path));
-            return *this;
-        }
-
-        inline IgnoreFile& operator=(IgnoreFile& other)
-        {
-            swap(*this, other);
-            return *this;
-        }
-
-        inline IgnoreFile& operator=(IgnoreFile&& other)
-        {
-            swap(*this, std::move(other));
-            return *this;
-        }
+        inline IgnoreFile& operator=(const IgnoreFile& other) = default;
+        inline IgnoreFile& operator=(IgnoreFile&& other)      = default;
 
         inline ~IgnoreFile() = default;
 
@@ -143,16 +122,6 @@ namespace Ignorelib
 
             const auto result = IgnoreUtils::ConvToPattern(s);
             if (result) _patterns.push_back(std::move(*result));
-        }
-
-        inline friend void swap(IgnoreFile& first, IgnoreFile& second)
-        {
-            std::swap(first._patterns, second._patterns);
-        }
-
-        inline friend void swap(IgnoreFile& first, IgnoreFile&& second)
-        {
-            std::swap(first._patterns, second._patterns);
         }
 
         void readFile(std::ifstream&& fileHandle);
