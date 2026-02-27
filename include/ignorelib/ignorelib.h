@@ -58,14 +58,12 @@ namespace Ignorelib
         explicit inline IgnoreFile(
             const std::span<std::pair<std::regex, bool>>& patterns) noexcept :
             _patterns {patterns.begin(), patterns.end()}
-        {
-        }
+        {}
 
         explicit inline IgnoreFile(
             std::vector<std::pair<std::regex, bool>>&& patterns) noexcept :
             _patterns {std::move(patterns)}
-        {
-        }
+        {}
 
         explicit IgnoreFile(std::initializer_list<std::string_view>&& range)
         {
