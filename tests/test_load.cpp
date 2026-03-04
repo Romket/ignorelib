@@ -24,13 +24,31 @@
 
 #include <gtest/gtest.h>
 
-#define IGNORELIB_TESTS
 #include <ignorelib/ignorelib.h>
-#undef IGNORELIB_TESTS
+#include <ignorelib/internal/ignoreutils.h>
 
+#include <chrono>
 #include <fstream>
 
 #include "test_load_file_constants.h"
+
+#include <iostream>
+
+void Loaded(Ignorelib::IgnoreFile&& file)
+{
+    ASSERT_EQ(numPatterns, file.GetPatterns().size());
+
+    for (int i = 0; i < numPatterns; ++i)
+    {
+        const auto result =
+            Ignorelib::IgnoreUtils::ConvToTestPattern(lines[i + 2]);
+
+        ASSERT_TRUE(result);
+
+        EXPECT_EQ(patterns[i], result->Str);
+        EXPECT_EQ(patternNegated[i], result->P.Negated);
+    }
+}
 
 TEST(test_load, file)
 {
@@ -38,40 +56,32 @@ TEST(test_load, file)
     for (const std::string_view& line : lines) fileToRead << line << '\n';
     fileToRead.close();
 
-    std::ifstream handle {".test_load_file"};
-    ASSERT_TRUE(handle.is_open());
+    std::cout << "made a thing\n";
 
-    Ignorelib::IgnoreFile file {".test_load_file"};
+    std::this_thread::sleep_for(std::chrono::milliseconds {1000});
 
-    ASSERT_EQ(numPatterns, file._patterns.size());
+    Ignorelib::IgnoreFile file(".test_load_file");
 
-    for (int i = 0; i < numPatterns; ++i)
-    {
-        const auto& pattern = file.convToRe(lines[i + 2]);
-
-        EXPECT_EQ(patterns[i], pattern.first);
-        EXPECT_EQ(patternNegated[i], pattern.second);
-    }
+    Loaded(std::move(file));
 }
 
-TEST(test_load, re_list)
+TEST(test_load, pattern_list)
 {
-    std::vector<std::pair<std::regex, bool>> patternMap;
+    std::vector<Ignorelib::Pattern> patternMap;
     for (int i = 0; i < numPatterns; ++i)
     {
         patternMap.push_back(
             {std::regex(std::string(patterns[i])), patternNegated[i]});
     }
 
-    Ignorelib::IgnoreFile file {patternMap};
+    Ignorelib::IgnoreFile file {std::move(patternMap)};
 
-    ASSERT_EQ(numPatterns, file._patterns.size());
+    Loaded(std::move(file));
+}
 
-    for (int i = 0; i < numPatterns; ++i)
-    {
-        const auto& pattern = file.convToRe(lines[i + 2]);
+TEST(test_load, string_list)
+{
+    Ignorelib::IgnoreFile file {lines};
 
-        EXPECT_EQ(patterns[i], pattern.first);
-        EXPECT_EQ(patternNegated[i], pattern.second);
-    }
+    Loaded(std::move(file));
 }
