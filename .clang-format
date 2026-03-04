@@ -68,3 +68,5 @@ BraceWrapping:
     AfterExternBlock: true
     BeforeCatch: true
     BeforeElse: true
+    SplitEmptyFunction: false
+    SplitEmptyNamespace: false

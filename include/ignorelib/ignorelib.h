@@ -54,13 +54,11 @@ namespace Ignorelib
 
         explicit inline IgnoreFile(const std::span<Pattern>& patterns) :
             _patterns {patterns.begin(), patterns.end()}
-        {
-        }
+        {}
 
         explicit inline IgnoreFile(std::vector<Pattern>&& patterns) :
             _patterns {std::move(patterns)}
-        {
-        }
+        {}
 
         // TODO: this for loop shows up a lot, make into function
         explicit IgnoreFile(std::initializer_list<std::string_view>&& range)
