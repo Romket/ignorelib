@@ -48,12 +48,16 @@ endif()
 #----------------------------------------------------------------------------------------------------------------------
 
 set(sources
-    test_load.cpp)
+    test_load.cpp
+    test_ignore.cpp
+    )
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${sources})
 
 #----------------------------------------------------------------------------------------------------------------------
 # tests target
 #----------------------------------------------------------------------------------------------------------------------
+
+add_compile_definitions(IGNORELIB_TESTS)
 
 add_executable(ignorelib-tests)
 target_sources(ignorelib-tests PRIVATE ${sources})
@@ -69,5 +73,3 @@ endif()
 
 include(GoogleTest)
 gtest_discover_tests(ignorelib-tests)
-
-#TODO: get test files to copy into the build directory

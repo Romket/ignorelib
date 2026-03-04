@@ -11,6 +11,8 @@ project(ignorelib
     DESCRIPTION ".gitignore-style file parser and pattern matcher"
     LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 23)
+
 #----------------------------------------------------------------------------------------------------------------------
 # general settings and options
 #----------------------------------------------------------------------------------------------------------------------
@@ -65,7 +67,8 @@ generate_export_header(ignorelib EXPORT_FILE_NAME include/ignorelib/${export_fil
 set(sources
 #   include/ignorelib/export.h
     include/ignorelib/ignorelib.h
-    src/ignorelib.cpp)
+    src/ignorelib.cpp
+    src/internal/ignoreutils.cpp)
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${sources})
 
 #----------------------------------------------------------------------------------------------------------------------
@@ -149,6 +152,7 @@ endif()
 #----------------------------------------------------------------------------------------------------------------------
 
 if(IGNORELIB_BUILD_TESTS)
+    add_compile_definitions(IGNORELIB_TESTS)
     enable_testing()
     add_subdirectory(tests)
 endif()

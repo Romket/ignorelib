@@ -24,9 +24,14 @@
 
 #pragma once
 
+#include <ignorelib/internal/ignoreutils.h>
+#include <ignorelib/internal/pattern.h>
+
 #include <filesystem>
 #include <fstream>
-#include <regex>
+#include <optional>
+#include <ranges>
+#include <span>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -37,88 +42,115 @@ namespace Ignorelib
     class IgnoreFile
     {
     public:
-        explicit inline IgnoreFile(const std::filesystem::path& path) noexcept
+        explicit inline IgnoreFile(const std::filesystem::path& path)
         {
-            loadFile(path);
+            readFile(path);
         }
 
-        explicit inline IgnoreFile(const std::filesystem::path&& path) noexcept
+        explicit inline IgnoreFile(std::filesystem::path&& path)
         {
-            loadFile(std::move(path));
+            readFile(std::move(path));
         }
 
-        explicit inline IgnoreFile(
-            const std::vector<std::pair<std::regex, bool>>& patterns) noexcept :
-            _patterns {patterns}
+        explicit inline IgnoreFile(const std::span<Pattern>& patterns) :
+            _patterns {patterns.begin(), patterns.end()}
+        {}
+
+        explicit inline IgnoreFile(std::vector<Pattern>&& patterns) :
+            _patterns {std::move(patterns)}
+        {}
+
+        // TODO: this for loop shows up a lot, make into function
+        explicit IgnoreFile(std::initializer_list<std::string_view>&& range)
         {
+            for (const std::string_view& p : range)
+            {
+                if (p.empty() || p[0] == '#') continue;
+
+                const auto result = IgnoreUtils::ConvToPattern(p);
+                if (result) _patterns.push_back(std::move(*result));
+            }
         }
 
-        explicit inline IgnoreFile(
-            const std::vector<std::pair<std::regex, bool>>&& patterns) noexcept
-            : _patterns {std::move(patterns)}
+        template<std::ranges::input_range R>
+            requires(std::convertible_to<std::ranges::range_value_t<R>,
+                                         std::string_view> &&
+                     !std::same_as<std::remove_cvref_t<R>, IgnoreFile>)
+        explicit inline IgnoreFile(const R& range)
         {
+            for (const std::string_view& p : range)
+            {
+                if (p.empty() || p[0] == '#') continue;
+
+                const auto result = IgnoreUtils::ConvToPattern(p);
+                if (result) _patterns.push_back(std::move(*result));
+            }
         }
 
-        inline IgnoreFile(IgnoreFile& other) noexcept { swap(*this, other); }
-
-        inline IgnoreFile(IgnoreFile&& other) noexcept
+        template<std::ranges::input_range R>
+            requires(std::convertible_to<std::ranges::range_value_t<R>,
+                                         std::string> &&
+                     !std::same_as<std::remove_cvref_t<R>, IgnoreFile>)
+        explicit inline IgnoreFile(R&& range)
         {
-            swap(*this, std::move(other));
+            for (std::string&& p : range)
+            {
+                if (p.empty() || p[0] == '#') continue;
+
+                const auto result = IgnoreUtils::ConvToPattern(p);
+                if (result) _patterns.push_back(std::move(*result));
+            }
         }
+
+        inline IgnoreFile(IgnoreFile& other) { swap(*this, other); }
+
+        inline IgnoreFile(IgnoreFile&& other) { swap(*this, std::move(other)); }
 
         inline IgnoreFile& operator=(const std::filesystem::path& path)
         {
-            loadFile(path);
+            readFile(path);
             return *this;
         }
 
-        inline IgnoreFile& operator=(const std::filesystem::path&& path)
+        inline IgnoreFile& operator=(std::filesystem::path&& path)
         {
-            loadFile(std::move(path));
+            readFile(std::move(path));
             return *this;
         }
 
-        inline IgnoreFile& operator=(IgnoreFile& other) noexcept
+        inline IgnoreFile& operator=(IgnoreFile& other)
         {
             swap(*this, other);
             return *this;
         }
 
-        inline IgnoreFile& operator=(IgnoreFile&& other) noexcept
+        inline IgnoreFile& operator=(IgnoreFile&& other)
         {
             swap(*this, std::move(other));
             return *this;
         }
 
-        bool Ignored(const std::string& p);
-        bool Ignored(const std::string&& p);
-
         inline ~IgnoreFile() = default;
 
+        const std::vector<Pattern>& GetPatterns() const { return _patterns; }
+
+    public:
+        bool Ignored(std::string_view p);
+
     private:
-        inline friend void swap(IgnoreFile& first, IgnoreFile& second) noexcept
+        inline friend void swap(IgnoreFile& first, IgnoreFile& second)
         {
             std::swap(first._patterns, second._patterns);
         }
 
-        inline friend void swap(IgnoreFile& first, IgnoreFile&& second) noexcept
+        inline friend void swap(IgnoreFile& first, IgnoreFile&& second)
         {
             std::swap(first._patterns, second._patterns);
-        }
-
-        inline void loadFile(const std::filesystem::path& path)
-        {
-            readFile(path);
-        }
-        inline void loadFile(const std::filesystem::path&& path)
-        {
-            readFile(std::move(path));
         }
 
         void readFile(std::ifstream&& fileHandle);
 
-        std::pair<std::regex, bool> convToRe(std::string_view sv);
-
-        std::vector<std::pair<std::regex, bool>> _patterns;
+    private:
+        std::vector<Pattern> _patterns;
     };
 } // namespace Ignorelib
