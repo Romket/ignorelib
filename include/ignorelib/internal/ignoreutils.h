@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <ignorelib/internal/pattern.h>
+#include <ignorelib/pattern.h>
 
 #include <optional>
 #include <string_view>
