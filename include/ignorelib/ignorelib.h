@@ -102,8 +102,8 @@ namespace Ignorelib
             for (std::string_view s : moveRange) addPattern(s);
         }
 
-        explicit inline IgnoreFile(const IgnoreFile& other) = default;
-        explicit inline IgnoreFile(IgnoreFile&& other)      = default;
+        inline IgnoreFile(const IgnoreFile& other) = default;
+        inline IgnoreFile(IgnoreFile&& other)      = default;
 
         inline IgnoreFile& operator=(const IgnoreFile& other) = default;
         inline IgnoreFile& operator=(IgnoreFile&& other)      = default;

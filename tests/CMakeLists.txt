@@ -24,7 +24,8 @@ endif()
 #----------------------------------------------------------------------------------------------------------------------
 
 include(FetchContent)
-FetchContent_Declare(googletest URL https://github.com/google/googletest/archive/refs/tags/release-1.12.1.tar.gz)
+FetchContent_Declare(googletest URL https://github.com/google/googletest/archive/refs/tags/release-1.12.1.tar.gz
+                     DOWNLOAD_EXTRACT_TIMESTAMP now)
 
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE) # do not override parent project's runtime settings on Windows
 set(INSTALL_GTEST OFF)
@@ -48,8 +49,9 @@ endif()
 #----------------------------------------------------------------------------------------------------------------------
 
 set(sources
-    test_load.cpp
+    test_converter.cpp
     test_ignore.cpp
+    test_load.cpp
     )
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${sources})
 

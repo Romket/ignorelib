@@ -27,28 +27,11 @@
 #include <ignorelib/ignorelib.h>
 #include <ignorelib/internal/ignoreutils.h>
 
-#include <chrono>
+#include <array>
 #include <fstream>
+#include <vector>
 
 #include "test_load_file_constants.h"
-
-#include <iostream>
-
-void Loaded(Ignorelib::IgnoreFile&& file)
-{
-    ASSERT_EQ(numPatterns, file.GetPatterns().size());
-
-    for (int i = 0; i < numPatterns; ++i)
-    {
-        const auto result =
-            Ignorelib::IgnoreUtils::ConvToTestPattern(lines[i + 2]);
-
-        ASSERT_TRUE(result);
-
-        EXPECT_EQ(patterns[i], result->Str);
-        EXPECT_EQ(patternNegated[i], result->P.Negated);
-    }
-}
 
 TEST(test_load, file)
 {
@@ -56,17 +39,14 @@ TEST(test_load, file)
     for (const std::string_view& line : lines) fileToRead << line << '\n';
     fileToRead.close();
 
-    std::cout << "made a thing\n";
-
-    std::this_thread::sleep_for(std::chrono::milliseconds {1000});
-
     Ignorelib::IgnoreFile file(".test_load_file");
 
-    Loaded(std::move(file));
+    EXPECT_EQ(numPatterns, file.GetPatterns().size());
 }
 
 TEST(test_load, pattern_list)
 {
+    // Test std::vector&& constructor
     std::vector<Ignorelib::Pattern> patternMap;
     for (int i = 0; i < numPatterns; ++i)
     {
@@ -74,14 +54,67 @@ TEST(test_load, pattern_list)
             {std::regex(std::string(patterns[i])), patternNegated[i]});
     }
 
-    Ignorelib::IgnoreFile file {std::move(patternMap)};
+    Ignorelib::IgnoreFile vecFile {std::move(patternMap)};
+    EXPECT_EQ(numPatterns, vecFile.GetPatterns().size());
 
-    Loaded(std::move(file));
+    // Test template range constructors
+    std::array<Ignorelib::Pattern, numPatterns> patternArray;
+    for (size_t i {0}; i < numPatterns; ++i)
+    {
+        patternArray[i] = {std::regex(std::string(patterns[i])),
+                           patternNegated[i]};
+    }
+
+    Ignorelib::IgnoreFile arrFile {patternArray};
+    EXPECT_EQ(numPatterns, arrFile.GetPatterns().size());
+
+    Ignorelib::IgnoreFile arrMoveFile {std::move(patternArray)};
+    EXPECT_EQ(numPatterns, arrMoveFile.GetPatterns().size());
+
+    // Test initializer list constructor
+    Ignorelib::IgnoreFile listFile {
+        {std::regex(std::string {patterns[0]}), patternNegated[0]}};
+    EXPECT_EQ(1, listFile.GetPatterns().size());
 }
 
 TEST(test_load, string_list)
 {
-    Ignorelib::IgnoreFile file {lines};
+    // Test template range constructors
+    std::array<std::string, numLines> linesArray;
+    for (size_t i {0}; i < numLines; ++i) linesArray[i] = lines[i];
 
-    Loaded(std::move(file));
+    Ignorelib::IgnoreFile file {linesArray};
+    EXPECT_EQ(numPatterns, file.GetPatterns().size());
+
+    Ignorelib::IgnoreFile moveFile {std::move(linesArray)};
+    EXPECT_EQ(numPatterns, moveFile.GetPatterns().size());
+
+    // Test initializer list constructor
+    Ignorelib::IgnoreFile listFile {"line1", "line2"};
+    EXPECT_EQ(2, listFile.GetPatterns().size());
+}
+
+TEST(test_load, other)
+{
+    Ignorelib::IgnoreFile otherConstruct {lines};
+
+    // Test copy constructor
+    Ignorelib::IgnoreFile constructCopied {otherConstruct};
+    EXPECT_EQ(numPatterns, constructCopied.GetPatterns().size());
+
+    // Test move constructor
+    Ignorelib::IgnoreFile constructMoved {std::move(otherConstruct)};
+    EXPECT_EQ(numPatterns, constructMoved.GetPatterns().size());
+
+    Ignorelib::IgnoreFile otherAssign {lines};
+
+    // Test copy assignment operator
+    Ignorelib::IgnoreFile assignCopied {""};
+    assignCopied = otherAssign;
+    EXPECT_EQ(numPatterns, assignCopied.GetPatterns().size());
+
+    // Test move assignment operator
+    Ignorelib::IgnoreFile moveCopied {""};
+    moveCopied = std::move(otherAssign);
+    EXPECT_EQ(numPatterns, moveCopied.GetPatterns().size());
 }
