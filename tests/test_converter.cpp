@@ -1,9 +1,9 @@
 /**
- * @file ignoreutils.h
+ * @file test_converter.cpp
  * @author Luke Houston (Romket) (lukehouston08@gmail.com)
- * @brief Internal ignorelib utility functions
+ * @brief Test converting pattern strings to regex
  * @version 0.1
- * @date 2026-03-04
+ * @date 2026-03-05
  *
  * @copyright Copyright (c) 2026 Luke Houston
  *
@@ -22,23 +22,22 @@
  *
  */
 
-#pragma once
+#include <gtest/gtest.h>
 
+#include <ignorelib/internal/ignoreutils.h>
 #include <ignorelib/pattern.h>
 
-#include <optional>
-#include <string_view>
+#include "test_load_file_constants.h"
 
-namespace Ignorelib
+TEST(test_convert, convert)
 {
-    class IgnoreUtils
+    for (int i {2}; i < numLines; ++i)
     {
-    public:
-        static std::optional<Pattern> ConvToPattern(std::string_view sv);
+        auto result = Ignorelib::IgnoreUtils::ConvToTestPattern(lines[i]);
 
-#ifdef IGNORELIB_TESTS
-        static std::optional<TestPattern>
-        ConvToTestPattern(std::string_view sv);
-#endif
-    };
-} // namespace Ignorelib
+        ASSERT_TRUE(result);
+
+        EXPECT_EQ(patterns[i - 2], result->Str);
+        EXPECT_EQ(patternNegated[i - 2], result->P.Negated);
+    }
+}

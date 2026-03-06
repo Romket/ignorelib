@@ -26,8 +26,6 @@
 
 #include <fstream>
 
-#include <iostream>
-
 namespace Ignorelib
 {
     bool IgnoreFile::Ignored(std::string_view p)
@@ -59,21 +57,12 @@ namespace Ignorelib
 
     void IgnoreFile::readFile(std::ifstream&& fileHandle)
     {
-        std::cout << "asdgasjdg\n";
         if (!fileHandle.is_open())
             throw std::invalid_argument("Failed to open file");
 
         for (std::string line; std::getline(fileHandle, line);)
         {
-
-            std::cout << line << '\n';
-            // TODO: remove all whitespace to make these checks better
-            if (line.empty() || line[0] == '#') continue;
-
-            std::cout << line << '\n';
-
-            const auto result = IgnoreUtils::ConvToPattern(line);
-            if (result) _patterns.push_back(std::move(*result));
+            addPattern(line);
         }
     }
 } // namespace Ignorelib
