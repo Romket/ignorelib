@@ -38,6 +38,12 @@
 
 namespace Ignorelib
 {
+    enum class FileType
+    {
+        file,
+        directory
+    };
+
     class IgnoreFile
     {
     public:
@@ -113,7 +119,21 @@ namespace Ignorelib
         const std::vector<Pattern>& GetPatterns() const { return _patterns; }
 
     public:
-        bool Ignored(std::string_view p);
+        bool Ignored(std::string_view p, FileType f = FileType::file);
+
+    private:
+        struct MatchesInfo
+        {
+            // cppcheck-suppress unusedStructMember
+            std::string_view First;
+            // cppcheck-suppress unusedStructMember
+            std::string_view  Full;
+            const std::regex& Re;
+            // cppcheck-suppress unusedStructMember
+            const bool& ToOutput;
+            // cppcheck-suppress unusedStructMember
+            bool& Out;
+        };
 
     private:
         inline void addPattern(std::string_view s)
@@ -125,6 +145,10 @@ namespace Ignorelib
         }
 
         void readFile(std::ifstream&& fileHandle);
+
+        std::vector<size_t> findSeparators(std::string_view sv);
+
+        bool matches(MatchesInfo&& info);
 
     private:
         std::vector<Pattern> _patterns;

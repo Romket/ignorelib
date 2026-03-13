@@ -28,28 +28,33 @@
 
 namespace Ignorelib
 {
-    bool IgnoreFile::Ignored(std::string_view p)
+    bool IgnoreFile::Ignored(std::string_view p, FileType f)
     {
         bool ignored = false;
 
         for (const Pattern& pattern : _patterns)
         {
-            size_t i;
-            for (i = 0; i < p.length(); ++i)
-                if (p[i] == '/') break;
+            if (f == FileType::file && pattern.DirsOnly) continue;
 
-            std::string dir {p.substr(0, i)};
+            std::vector<size_t> separators = findSeparators(p);
+            separators.push_back(p.size());
 
-            if (std::regex_match(dir, pattern.Re))
+            MatchesInfo info {p.substr(0, separators[0]), p, pattern.Re,
+                              !pattern.Negated, ignored};
+
+            if (matches(std::move(info))) return ignored;
+
+            if (!pattern.TopLevelOnly)
             {
-                // Early return to mimick .gitignore behavior
-                if (dir != p) return !pattern.Negated;
+                for (size_t i {0}; i < separators.size() - 1; ++i)
+                {
+                    MatchesInfo substrInfo {
+                        p.substr(separators[i], separators[i + 1]), p,
+                        pattern.Re, !pattern.Negated, ignored};
 
-                ignored = !pattern.Negated;
+                    if (matches(std::move(substrInfo))) return ignored;
+                }
             }
-
-            if (std::regex_match(p.begin(), p.end(), pattern.Re))
-                ignored = !pattern.Negated;
         }
 
         return ignored;
@@ -64,5 +69,38 @@ namespace Ignorelib
         {
             addPattern(line);
         }
+    }
+
+    std::vector<size_t> IgnoreFile::findSeparators(std::string_view sv)
+    {
+        std::vector<size_t> separators {};
+
+        for (auto [i, c] : std::views::enumerate(sv))
+        {
+            if (c == '/')
+                separators.push_back(std::move(static_cast<size_t>(i)));
+        }
+
+        return separators;
+    }
+
+    bool IgnoreFile::matches(MatchesInfo&& info)
+    {
+        if (std::regex_match(info.First.begin(), info.First.end(), info.Re))
+        {
+            // Early return to mimick .gitignore behavior
+            if (info.First != info.Full)
+            {
+                info.Out = info.ToOutput;
+                return true;
+            }
+
+            info.Out = info.ToOutput;
+        }
+
+        if (std::regex_match(info.Full.begin(), info.Full.end(), info.Re))
+            info.Out = info.ToOutput;
+
+        return false;
     }
 } // namespace Ignorelib

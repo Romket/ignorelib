@@ -30,9 +30,11 @@ namespace Ignorelib
     {
         std::string regexStr;
 
-        bool track = sv[0] == '!';
+        Pattern p;
 
-        for (size_t i = track; i < sv.size(); ++i)
+        p.Negated = sv[0] == '!';
+
+        for (size_t i = p.Negated; i < sv.size(); ++i)
         {
             switch (sv[i])
             {
@@ -40,8 +42,12 @@ namespace Ignorelib
                     regexStr.push_back(sv[i]);
                     if (i + 1 < sv.size())
                     {
-                        regexStr.push_back(sv[i + 1]);
-                        ++i;
+                        if (sv[i + 1] != '/')
+                        {
+                            regexStr.push_back(sv[i]);
+                            ++i;
+                            regexStr.push_back(sv[i]);
+                        }
                     }
                     else
                         return std::nullopt;
@@ -59,18 +65,21 @@ namespace Ignorelib
                         regexStr += "(?:\\/.*\\/|\\/)";
                         i += 3;
                     }
+                    else if (i + 1 == sv.size())
+                        p.DirsOnly = true;
                     else
+                    {
+                        p.TopLevelOnly = true;
                         regexStr += "\\/";
+                    }
                     break;
                 case '?': regexStr += "[^\\/]"; break;
-                case '#':
-                    return Pattern {std::regex {std::move(regexStr)},
-                                    std::move(track)};
                 default: regexStr.push_back(sv[i]);
             }
         }
 
-        return Pattern {std::regex {std::move(regexStr)}, std::move(track)};
+        p.Re = std::regex(std::move(regexStr));
+        return p;
     }
 
 #ifdef IGNORELIB_TESTS
