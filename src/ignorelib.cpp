@@ -26,31 +26,50 @@
 
 #include <fstream>
 
+#include <iostream>
+
 namespace Ignorelib
 {
     bool IgnoreFile::Ignored(std::string_view p, FileType f)
     {
         bool ignored = false;
 
+        std::cout << p << '\n';
+
         for (const Pattern& pattern : _patterns)
         {
-            if (f == FileType::file && pattern.DirsOnly) continue;
-
             std::vector<size_t> separators = findSeparators(p);
-            separators.push_back(p.size());
+            for (size_t i {0}; i <= pattern.SepCount; ++i)
+                separators.push_back(p.size());
 
-            MatchesInfo info {p.substr(0, separators[0]), p, pattern.Re,
-                              !pattern.Negated, ignored};
+            MatchesInfo info {p.substr(0, separators[pattern.SepCount]),
+                              p,
+                              pattern.Re,
+                              !pattern.Negated,
+                              ignored,
+                              f,
+                              pattern.DirsOnly};
 
             if (matches(std::move(info))) return ignored;
 
             if (!pattern.TopLevelOnly)
             {
-                for (size_t i {0}; i < separators.size() - 1; ++i)
+                for (size_t i {0}; i + pattern.SepCount < separators.size() - 1;
+                     ++i)
                 {
                     MatchesInfo substrInfo {
-                        p.substr(separators[i], separators[i + 1]), p,
-                        pattern.Re, !pattern.Negated, ignored};
+                        p.substr(separators[i] + 1,
+                                 separators[i + 1 + pattern.SepCount] -
+                                     (separators[i] + 1)),
+                        p.substr(separators[i] + 1),
+                        pattern.Re,
+                        !pattern.Negated,
+                        ignored,
+                        f,
+                        pattern.DirsOnly};
+
+                    std::cout << substrInfo.First << ", " << substrInfo.Full
+                              << '\n';
 
                     if (matches(std::move(substrInfo))) return ignored;
                 }
@@ -86,20 +105,19 @@ namespace Ignorelib
 
     bool IgnoreFile::matches(MatchesInfo&& info)
     {
-        if (std::regex_match(info.First.begin(), info.First.end(), info.Re))
+        if (std::regex_match(info.First.begin(), info.First.end(), info.Re) &&
+            info.First != info.Full)
         {
-            // Early return to mimick .gitignore behavior
-            if (info.First != info.Full)
-            {
-                info.Out = info.ToOutput;
-                return true;
-            }
-
             info.Out = info.ToOutput;
+            return true;
         }
 
-        if (std::regex_match(info.Full.begin(), info.Full.end(), info.Re))
+        if (std::regex_match(info.Full.begin(), info.Full.end(), info.Re) &&
+            (info.File == FileType::directory || !info.DirsOnly))
+        {
             info.Out = info.ToOutput;
+            std::cout << "got a thing\n";
+        }
 
         return false;
     }

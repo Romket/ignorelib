@@ -41,6 +41,8 @@ namespace Ignorelib
         bool TopLevelOnly {false};
         // cppcheck-suppress unusedStructMember
         bool DirsOnly {false};
+        // cppcheck-suppress unusedStructMember
+        size_t SepCount {0};
     };
 
 #ifdef IGNORELIB_TESTS

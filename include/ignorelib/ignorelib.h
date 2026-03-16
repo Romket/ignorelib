@@ -48,14 +48,10 @@ namespace Ignorelib
     {
     public:
         explicit inline IgnoreFile(const std::filesystem::path& path)
-        {
-            readFile(path);
-        }
+        { readFile(path); }
 
         explicit inline IgnoreFile(std::filesystem::path&& path)
-        {
-            readFile(std::move(path));
-        }
+        { readFile(std::move(path)); }
 
         explicit inline IgnoreFile(std::vector<Pattern>&& vecPatterns) :
             _patterns {std::move(vecPatterns)}
@@ -133,6 +129,10 @@ namespace Ignorelib
             const bool& ToOutput;
             // cppcheck-suppress unusedStructMember
             bool& Out;
+            // cppcheck-suppress unusedStructMember
+            FileType File;
+            // cppcheck-suppress unusedStructMember
+            bool DirsOnly;
         };
 
     private:
