@@ -59,7 +59,21 @@ TEST(test_ignore, negate)
     EXPECT_TRUE(file.Ignored("a/contained"));
 }
 
-// TODO: directory separators in .gitignore are weird
+TEST(test_ignore, dir_separators)
+{
+    Ignorelib::IgnoreFile file {"a", "/b", "c/d/"};
+
+    EXPECT_TRUE(file.Ignored("a"));
+    EXPECT_TRUE(file.Ignored("some/path/to/a"));
+
+    EXPECT_TRUE(file.Ignored("b"));
+    EXPECT_FALSE(file.Ignored("some/path/to/b"));
+
+    EXPECT_TRUE(file.Ignored("c/d", Ignorelib::FileType::directory));
+    EXPECT_FALSE(file.Ignored("c/d", Ignorelib::FileType::file));
+    EXPECT_FALSE(
+        file.Ignored("some/path/to/c/d", Ignorelib::FileType::directory));
+}
 
 TEST(test_ignore, wildcard)
 {
@@ -124,10 +138,9 @@ TEST(test_ignore, escaped)
     EXPECT_FALSE(file.Ignored("c\\"));
 }
 
-// TODO: add better support for leading '**/' and trailing '/**'
 TEST(test_ignore, double_asterisk)
 {
-    Ignorelib::IgnoreFile file {"a/**/b"};
+    Ignorelib::IgnoreFile file {"a/**/b", "c/**", "**/d", "**/e/f"};
 
     EXPECT_TRUE(file.Ignored("a/b"));
     EXPECT_TRUE(file.Ignored("a/x/b"));
@@ -135,6 +148,21 @@ TEST(test_ignore, double_asterisk)
     EXPECT_FALSE(file.Ignored("ab"));
     EXPECT_FALSE(file.Ignored("a/xb"));
     EXPECT_FALSE(file.Ignored("a/x/yb"));
+
+    EXPECT_TRUE(file.Ignored("c/something"));
+    EXPECT_FALSE(file.Ignored("c1/something"));
+    EXPECT_FALSE(file.Ignored("c"));
+    EXPECT_FALSE(file.Ignored("c1"));
+
+    EXPECT_TRUE(file.Ignored("d"));
+    EXPECT_FALSE(file.Ignored("d1"));
+    EXPECT_TRUE(file.Ignored("some/path/to/d"));
+    EXPECT_FALSE(file.Ignored("some/path/to/d1"));
+
+    EXPECT_TRUE(file.Ignored("e/f"));
+    EXPECT_FALSE(file.Ignored("e/x/f"));
+    EXPECT_TRUE(file.Ignored("some/path/to/e/f"));
+    EXPECT_FALSE(file.Ignored("some/path/to/e/x/f"));
 }
 
 TEST(test_ignore, re_reserved)
