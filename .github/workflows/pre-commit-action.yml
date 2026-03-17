@@ -23,14 +23,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install cppcheck
 
-      - name: Install Clang-Format 21
+      - name: Install Clang-Format 22
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
-          sudo ./llvm.sh 21
-          sudo apt-get install -y clang-format-21
-          # Create a symlink so 'clang-format' defaults to v21
-          sudo ln -s /usr/bin/clang-format-21 /usr/local/bin/clang-format
+          sudo ./llvm.sh 22
+          sudo apt-get install -y clang-format-22
+          # Create a symlink so 'clang-format' defaults to v22
+          sudo ln -s /usr/bin/clang-format-22 /usr/local/bin/clang-format
 
       - name: Set up Python  # Recommended way to install pre-commit (supposedly)
         uses: actions/setup-python@v5
