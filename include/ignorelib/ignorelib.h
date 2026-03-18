@@ -38,18 +38,20 @@
 
 namespace Ignorelib
 {
+    enum class FileType
+    {
+        file,
+        directory
+    };
+
     class IgnoreFile
     {
     public:
         explicit inline IgnoreFile(const std::filesystem::path& path)
-        {
-            readFile(path);
-        }
+        { readFile(path); }
 
         explicit inline IgnoreFile(std::filesystem::path&& path)
-        {
-            readFile(std::move(path));
-        }
+        { readFile(std::move(path)); }
 
         explicit inline IgnoreFile(std::vector<Pattern>&& vecPatterns) :
             _patterns {std::move(vecPatterns)}
@@ -113,7 +115,25 @@ namespace Ignorelib
         const std::vector<Pattern>& GetPatterns() const { return _patterns; }
 
     public:
-        bool Ignored(std::string_view p);
+        bool Ignored(std::string_view p, FileType f = FileType::file);
+
+    private:
+        struct MatchesInfo
+        {
+            // cppcheck-suppress unusedStructMember
+            std::string_view First;
+            // cppcheck-suppress unusedStructMember
+            std::string_view  Full;
+            const std::regex& Re;
+            // cppcheck-suppress unusedStructMember
+            const bool& ToOutput;
+            // cppcheck-suppress unusedStructMember
+            bool& Out;
+            // cppcheck-suppress unusedStructMember
+            FileType File;
+            // cppcheck-suppress unusedStructMember
+            bool DirsOnly;
+        };
 
     private:
         inline void addPattern(std::string_view s)
@@ -125,6 +145,10 @@ namespace Ignorelib
         }
 
         void readFile(std::ifstream&& fileHandle);
+
+        std::vector<size_t> findSeparators(std::string_view sv);
+
+        bool matches(MatchesInfo&& info);
 
     private:
         std::vector<Pattern> _patterns;

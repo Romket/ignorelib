@@ -16,4 +16,10 @@ cpp-lib-template is licensed under the Apache-2.0 license:
 - [examples/CMakeLists.txt](examples/CMakeLists.txt)
 - [tests/CMakeLists.txt](tests/CMakeLists.txt)
 
+## [Automate-VCPKG][automate-vcpkg]
+
+### Modified files
+- [cmake/automate-vcpkg.cmake](cmake/automate-vcpkg.cmake)
+
 [template]: https://github.com/pananton/cpp-lib-template/
+[automate-vcpkg]: https://github.com/REGoth-project/Automate-VCPKG/

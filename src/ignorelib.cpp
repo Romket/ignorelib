@@ -26,30 +26,54 @@
 
 #include <fstream>
 
+#include <iostream>
+
 namespace Ignorelib
 {
-    bool IgnoreFile::Ignored(std::string_view p)
+    bool IgnoreFile::Ignored(std::string_view p, FileType f)
     {
         bool ignored = false;
 
+        std::cout << p << '\n';
+
         for (const Pattern& pattern : _patterns)
         {
-            size_t i;
-            for (i = 0; i < p.length(); ++i)
-                if (p[i] == '/') break;
+            std::vector<size_t> separators = findSeparators(p);
+            for (size_t i {0}; i <= pattern.SepCount; ++i)
+                separators.push_back(p.size());
 
-            std::string dir {p.substr(0, i)};
+            MatchesInfo info {p.substr(0, separators[pattern.SepCount]),
+                              p,
+                              pattern.Re,
+                              !pattern.Negated,
+                              ignored,
+                              f,
+                              pattern.DirsOnly};
 
-            if (std::regex_match(dir, pattern.Re))
+            if (matches(std::move(info))) return ignored;
+
+            if (!pattern.TopLevelOnly)
             {
-                // Early return to mimick .gitignore behavior
-                if (dir != p) return !pattern.Negated;
+                for (size_t i {0}; i + pattern.SepCount < separators.size() - 1;
+                     ++i)
+                {
+                    MatchesInfo substrInfo {
+                        p.substr(separators[i] + 1,
+                                 separators[i + 1 + pattern.SepCount] -
+                                     (separators[i] + 1)),
+                        p.substr(separators[i] + 1),
+                        pattern.Re,
+                        !pattern.Negated,
+                        ignored,
+                        f,
+                        pattern.DirsOnly};
 
-                ignored = !pattern.Negated;
+                    std::cout << substrInfo.First << ", " << substrInfo.Full
+                              << '\n';
+
+                    if (matches(std::move(substrInfo))) return ignored;
+                }
             }
-
-            if (std::regex_match(p.begin(), p.end(), pattern.Re))
-                ignored = !pattern.Negated;
         }
 
         return ignored;
@@ -64,5 +88,37 @@ namespace Ignorelib
         {
             addPattern(line);
         }
+    }
+
+    std::vector<size_t> IgnoreFile::findSeparators(std::string_view sv)
+    {
+        std::vector<size_t> separators {};
+
+        for (auto [i, c] : std::views::enumerate(sv))
+        {
+            if (c == '/')
+                separators.push_back(std::move(static_cast<size_t>(i)));
+        }
+
+        return separators;
+    }
+
+    bool IgnoreFile::matches(MatchesInfo&& info)
+    {
+        if (std::regex_match(info.First.begin(), info.First.end(), info.Re) &&
+            info.First != info.Full)
+        {
+            info.Out = info.ToOutput;
+            return true;
+        }
+
+        if (std::regex_match(info.Full.begin(), info.Full.end(), info.Re) &&
+            (info.File == FileType::directory || !info.DirsOnly))
+        {
+            info.Out = info.ToOutput;
+            std::cout << "got a thing\n";
+        }
+
+        return false;
     }
 } // namespace Ignorelib

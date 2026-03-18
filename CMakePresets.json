@@ -7,10 +7,15 @@
   },
   "configurePresets": [
     {
+      "name": "default",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "hidden": true
+    },
+    {
       "name": "dev",
       "description": "Base preset for library developers",
-      "binaryDir": "${sourceDir}/build",
       "hidden": true,
+      "inherits": ["default"],
       "cacheVariables": {
         "IGNORELIB_BUILD_TESTS": "ON",
         "IGNORELIB_BUILD_EXAMPLES": "ON"
@@ -37,8 +42,8 @@
     {
       "name": "rel",
       "description": "Base release preset",
-      "binaryDir": "${sourceDir}/build",
       "hidden": true,
+      "inherits": ["default"],
       "cacheVariables": {
         "IGNORELIB_BUILD_TESTS": "OFF",
         "IGNORELIB_BUILD_EXAMPLES": "OFF"
