@@ -1,0 +1,23 @@
+name: Run test suite
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure project
+      run: cmake --preset dev-linux
+
+    - name: Build project
+      run: cd build/dev-linux && cmake --build .
+
+    - name: Run tests
+      run: cd build/dev-linux && ctest --output-on-failure
