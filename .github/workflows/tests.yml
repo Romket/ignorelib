@@ -20,4 +20,4 @@ jobs:
       run: cd build/dev-linux && cmake --build .
 
     - name: Run tests
-      run: ctest --output-on-failure
+      run: cd build/dev-linux && ctest --output-on-failure
