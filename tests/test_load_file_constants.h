@@ -29,7 +29,7 @@ constexpr std::string_view lines[numLines] = {
     "# ignored",       "",
     "ignore",          "!negate",
     "charclass[0-9]",  "file.extension",
-    "path/to",         "pattern# comment",
+    "path/to",         "pattern#x",
     "dir/*",           "dir/*.ext",
     "dir/**/otherFile"};
 
@@ -40,7 +40,7 @@ constexpr std::string_view patterns[numPatterns] = {
     "charclass[0-9]",
     "file\\.extension",
     "path\\/to",
-    "pattern",
+    "pattern#x",
     "dir\\/.*",
     "dir\\/[^\\/\\\\]*\\.ext",
     "dir(?:\\/.*\\/|\\/)otherFile"};
