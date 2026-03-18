@@ -41,6 +41,22 @@ jobs:
             c_compiler: clang
             cpp_compiler: clang++
             build_type: dev-linux
+          - os: ubuntu-latest
+            c_compiler: gcc
+            cpp_compiler: g++
+            build_type: rel-linux
+          - os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+            build_type: rel-linux
+          - os: ubuntu-latest
+            c_compiler: gcc
+            cpp_compiler: g++
+            build_type: relminsize-linux
+          - os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+            build_type: relminsize-linux
         exclude:
           - os: windows-latest
             c_compiler: gcc
@@ -50,6 +66,18 @@ jobs:
             c_compiler: cl
           - os: ubuntu-latest
             c_compiler: cl
+          - os: ubuntu-latest
+            build_type: dev-win
+          - os: ubuntu-latest
+            build_type: rel-win
+          - os: ubuntu-latest
+            build_type: relminsize-win
+          - os: windows-latest
+            build_type: dev-linux
+          - os: windows-latest
+            build_type: rel-linux
+          - os: windows-latest
+            build_type: relminsize-linux
 
     steps:
     - uses: actions/checkout@v4
