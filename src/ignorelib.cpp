@@ -26,28 +26,24 @@
 
 #include <fstream>
 
-#include <iostream>
-
 namespace Ignorelib
 {
-    bool IgnoreFile::Ignored(std::string_view p, FileType f)
+    bool IgnoreFile::Ignored(std::string_view path, const FileType& type)
     {
         bool ignored = false;
 
-        std::cout << p << '\n';
-
         for (const Pattern& pattern : _patterns)
         {
-            std::vector<size_t> separators = findSeparators(p);
+            std::vector<size_t> separators = findSeparators(path);
             for (size_t i {0}; i <= pattern.SepCount; ++i)
-                separators.push_back(p.size());
+                separators.push_back(path.size());
 
-            MatchesInfo info {p.substr(0, separators[pattern.SepCount]),
-                              p,
+            MatchesInfo info {path.substr(0, separators[pattern.SepCount]),
+                              path,
                               pattern.Re,
                               !pattern.Negated,
                               ignored,
-                              f,
+                              type,
                               pattern.DirsOnly};
 
             if (matches(std::move(info))) return ignored;
@@ -58,18 +54,15 @@ namespace Ignorelib
                      ++i)
                 {
                     MatchesInfo substrInfo {
-                        p.substr(separators[i] + 1,
-                                 separators[i + 1 + pattern.SepCount] -
-                                     (separators[i] + 1)),
-                        p.substr(separators[i] + 1),
+                        path.substr(separators[i] + 1,
+                                    separators[i + 1 + pattern.SepCount] -
+                                        (separators[i] + 1)),
+                        path.substr(separators[i] + 1),
                         pattern.Re,
                         !pattern.Negated,
                         ignored,
-                        f,
+                        type,
                         pattern.DirsOnly};
-
-                    std::cout << substrInfo.First << ", " << substrInfo.Full
-                              << '\n';
 
                     if (matches(std::move(substrInfo))) return ignored;
                 }
@@ -116,7 +109,6 @@ namespace Ignorelib
             (info.File == FileType::directory || !info.DirsOnly))
         {
             info.Out = info.ToOutput;
-            std::cout << "got a thing\n";
         }
 
         return false;
