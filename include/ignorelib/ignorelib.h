@@ -57,10 +57,8 @@ namespace Ignorelib
             _patterns {std::move(vecPatterns)}
         {}
 
-        explicit inline IgnoreFile(
-            std::initializer_list<Pattern>&& listPatterns) :
-            _patterns(std::move(listPatterns.begin()),
-                      std::move(listPatterns.end()))
+        explicit inline IgnoreFile(std::initializer_list<Pattern>&& patterns) :
+            _patterns(std::move(patterns.begin()), std::move(patterns.end()))
         {}
 
         template<std::ranges::input_range R>
@@ -75,15 +73,14 @@ namespace Ignorelib
             requires(
                 std::convertible_to<std::ranges::range_value_t<R>, Pattern> &&
                 !std::same_as<std::remove_cvref_t<R>, IgnoreFile>)
-        explicit inline IgnoreFile(R&& movePatterns) :
-            _patterns {std::move(movePatterns.begin()),
-                       std::move(movePatterns.end())}
+        explicit inline IgnoreFile(R&& patterns) :
+            _patterns {std::move(patterns.begin()), std::move(patterns.end())}
         {}
 
         explicit inline IgnoreFile(
-            std::initializer_list<std::string_view>&& listRange)
+            std::initializer_list<std::string_view>&& range)
         {
-            for (std::string_view s : listRange) addPattern(s);
+            for (std::string_view patternStr : range) addPattern(patternStr);
         }
 
         template<std::ranges::input_range R>
@@ -92,16 +89,16 @@ namespace Ignorelib
                      !std::same_as<std::remove_cvref_t<R>, IgnoreFile>)
         explicit inline IgnoreFile(const R& range)
         {
-            for (std::string_view s : range) addPattern(s);
+            for (std::string_view patternStr : range) addPattern(patternStr);
         }
 
         template<std::ranges::input_range R>
             requires(std::convertible_to<std::ranges::range_value_t<R>,
                                          std::string> &&
                      !std::same_as<std::remove_cvref_t<R>, IgnoreFile>)
-        explicit inline IgnoreFile(R&& moveRange)
+        explicit inline IgnoreFile(R&& range)
         {
-            for (std::string_view s : moveRange) addPattern(s);
+            for (std::string_view patternStr : range) addPattern(patternStr);
         }
 
         inline IgnoreFile(const IgnoreFile& other) = default;
@@ -115,7 +112,27 @@ namespace Ignorelib
         const std::vector<Pattern>& GetPatterns() const { return _patterns; }
 
     public:
-        bool Ignored(std::string_view p, FileType f = FileType::file);
+        bool Ignored(std::string_view path,
+                     const FileType&  type                = FileType::file,
+                     bool             runEarlyReturnLogic = true);
+
+        inline std::vector<std::filesystem::path>
+        ListIgnored(const std::filesystem::path& dir)
+        { return getIgnoredList(std::filesystem::path {dir}); }
+        inline std::vector<std::filesystem::path>
+        ListIgnored(std::filesystem::path&& dir)
+        { return getIgnoredList(std::move(dir)); }
+        inline std::vector<std::filesystem::path> ListIgnored()
+        { return getIgnoredList(std::filesystem::current_path()); }
+
+        inline std::vector<std::filesystem::path>
+        ListIncluded(const std::filesystem::path& dir)
+        { return getIncludedList(std::filesystem::path {dir}); }
+        inline std::vector<std::filesystem::path>
+        ListIncluded(std::filesystem::path&& dir)
+        { return getIncludedList(std::move(dir)); }
+        inline std::vector<std::filesystem::path> ListIncluded()
+        { return getIncludedList(std::filesystem::current_path()); }
 
     private:
         struct MatchesInfo
@@ -149,6 +166,11 @@ namespace Ignorelib
         std::vector<size_t> findSeparators(std::string_view sv);
 
         bool matches(MatchesInfo&& info);
+
+        std::vector<std::filesystem::path>
+        getIgnoredList(std::filesystem::path&& dir);
+        std::vector<std::filesystem::path>
+        getIncludedList(std::filesystem::path&& dir);
 
     private:
         std::vector<Pattern> _patterns;

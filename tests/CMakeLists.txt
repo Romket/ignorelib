@@ -52,6 +52,7 @@ set(sources
     test_converter.cpp
     test_ignore.cpp
     test_load.cpp
+    test_scan.cpp
     )
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${sources})
 
