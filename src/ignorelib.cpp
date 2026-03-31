@@ -26,52 +26,69 @@
 
 #include <fstream>
 
-#include <iostream>
-
 namespace Ignorelib
 {
-    bool IgnoreFile::Ignored(std::string_view p, FileType f)
+    bool IgnoreFile::Ignored(std::string_view path,
+                             const FileType&  type,
+                             bool             runEarlyReturnLogic)
     {
         bool ignored = false;
 
-        std::cout << p << '\n';
-
         for (const Pattern& pattern : _patterns)
         {
-            std::vector<size_t> separators = findSeparators(p);
-            for (size_t i {0}; i <= pattern.SepCount; ++i)
-                separators.push_back(p.size());
+            std::vector<size_t> separators {};
+            if (runEarlyReturnLogic || !pattern.TopLevelOnly)
+            {
+                separators = findSeparators(path);
+                for (size_t i {0}; i <= pattern.SepCount; ++i)
+                    separators.push_back(path.size());
+            }
 
-            MatchesInfo info {p.substr(0, separators[pattern.SepCount]),
-                              p,
-                              pattern.Re,
-                              !pattern.Negated,
-                              ignored,
-                              f,
-                              pattern.DirsOnly};
+            if (runEarlyReturnLogic)
+            {
+                MatchesInfo info {path.substr(0, separators[pattern.SepCount]),
+                                  path,
+                                  pattern.Re,
+                                  !pattern.Negated,
+                                  ignored,
+                                  type,
+                                  pattern.DirsOnly};
 
-            if (matches(std::move(info))) return ignored;
+                if (matches(std::move(info))) return ignored;
+            }
+            else if (std::regex_match(path.begin(), path.end(), pattern.Re) &&
+                     (type == FileType::directory || !pattern.DirsOnly))
+            {
+                return !pattern.Negated;
+            }
 
             if (!pattern.TopLevelOnly)
             {
                 for (size_t i {0}; i + pattern.SepCount < separators.size() - 1;
                      ++i)
                 {
-                    MatchesInfo substrInfo {
-                        p.substr(separators[i] + 1,
-                                 separators[i + 1 + pattern.SepCount] -
-                                     (separators[i] + 1)),
-                        p.substr(separators[i] + 1),
-                        pattern.Re,
-                        !pattern.Negated,
-                        ignored,
-                        f,
-                        pattern.DirsOnly};
+                    if (runEarlyReturnLogic)
+                    {
+                        MatchesInfo substrInfo {
+                            path.substr(separators[i] + 1,
+                                        separators[i + 1 + pattern.SepCount] -
+                                            (separators[i] + 1)),
+                            path.substr(separators[i] + 1),
+                            pattern.Re,
+                            !pattern.Negated,
+                            ignored,
+                            type,
+                            pattern.DirsOnly};
 
-                    std::cout << substrInfo.First << ", " << substrInfo.Full
-                              << '\n';
-
-                    if (matches(std::move(substrInfo))) return ignored;
+                        if (matches(std::move(substrInfo))) return ignored;
+                    }
+                    else if (std::regex_match(
+                                 path.substr(separators[i] + 1).begin(),
+                                 path.end(), pattern.Re) &&
+                             (type == FileType::directory || !pattern.DirsOnly))
+                    {
+                        return !pattern.Negated;
+                    }
                 }
             }
         }
@@ -116,9 +133,78 @@ namespace Ignorelib
             (info.File == FileType::directory || !info.DirsOnly))
         {
             info.Out = info.ToOutput;
-            std::cout << "got a thing\n";
         }
 
         return false;
+    }
+
+    std::vector<std::filesystem::path>
+    IgnoreFile::getIgnoredList(std::filesystem::path&& dir)
+    {
+
+        if (!std::filesystem::exists(dir) ||
+            !std::filesystem::is_directory(dir))
+            return {};
+
+        std::vector<std::filesystem::path> ignored {};
+
+        for (auto it =
+                 std::filesystem::recursive_directory_iterator {std::move(dir)};
+             it != std::filesystem::recursive_directory_iterator {}; ++it)
+        {
+            std::filesystem::path path =
+                std::filesystem::relative(it->path(), dir);
+
+            FileType type = std::filesystem::is_directory(path) ?
+                                FileType::directory :
+                                FileType::file;
+
+            if (Ignored(path.string(), type, false))
+            {
+                if (type == FileType::directory)
+                {
+                    it.disable_recursion_pending();
+                    for (const auto& entry :
+                         std::filesystem::recursive_directory_iterator {path})
+                    {
+                        if (!std::filesystem::is_directory(entry))
+                            ignored.push_back(std::move(entry.path()));
+                    }
+                }
+                else
+                    ignored.push_back(std::move(path));
+            }
+        }
+
+        return ignored;
+    }
+
+    std::vector<std::filesystem::path>
+    IgnoreFile::getIncludedList(std::filesystem::path&& dir)
+    {
+        if (!std::filesystem::exists(dir) ||
+            !std::filesystem::is_directory(dir))
+            return {};
+
+        std::vector<std::filesystem::path> included {};
+
+        for (auto it =
+                 std::filesystem::recursive_directory_iterator {std::move(dir)};
+             it != std::filesystem::recursive_directory_iterator {}; ++it)
+        {
+            std::filesystem::path path =
+                std::filesystem::relative(it->path(), dir);
+
+            FileType type = std::filesystem::is_directory(path) ?
+                                FileType::directory :
+                                FileType::file;
+
+            if (!Ignored(path.string(), type))
+            {
+                if (type == FileType::file) included.push_back(std::move(path));
+            }
+        }
+
+        return included;
     }
 } // namespace Ignorelib

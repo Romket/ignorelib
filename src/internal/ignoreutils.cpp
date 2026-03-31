@@ -24,8 +24,6 @@
 
 #include <ignorelib/internal/ignoreutils.h>
 
-#include <iostream>
-
 namespace Ignorelib
 {
     std::optional<Pattern> IgnoreUtils::ConvToPattern(std::string_view sv)
@@ -89,8 +87,6 @@ namespace Ignorelib
                 default: regexStr.push_back(start[i]);
             }
         }
-
-        std::cout << regexStr << '\n';
 
         if (anyLevel) p.TopLevelOnly = false;
 
@@ -161,8 +157,6 @@ namespace Ignorelib
                 default: regexStr.push_back(start[i]);
             }
         }
-
-        std::cout << regexStr << '\n';
 
         if (anyLevel) p.P.TopLevelOnly = false;
 
