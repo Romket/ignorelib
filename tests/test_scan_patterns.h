@@ -40,9 +40,22 @@ constexpr int              numScanFiles = 6;
 constexpr std::string_view scanFiles[numScanFiles] {"a/b", "a/c", "b/x/y",
                                                     "#c",  "d1",  "da"};
 
-constexpr int              numScanIgnored = 4;
-constexpr std::string_view scanIgnoredExpected[numScanIgnored] {"a/b", "a/c",
-                                                                "b/x/y", "d1"};
+//* List<type>Fast
 
-constexpr int              numScanIncluded = numScanFiles - numScanIgnored;
-constexpr std::string_view scanIncludedExpected[numScanIncluded] {"#c", "da"};
+constexpr int              numFastScanIgnored = 4;
+constexpr std::string_view fastScanIgnoredExpected[numFastScanIgnored] {
+    "a/b", "a/c", "b/x/y", "d1"};
+
+constexpr int numFastScanIncluded = numScanFiles - numFastScanIgnored;
+constexpr std::string_view fastScanIncludedExpected[numFastScanIncluded] {"#c",
+                                                                          "da"};
+
+//* List<type>Full
+
+constexpr int              numFullScanIgnored = 3;
+constexpr std::string_view fullScanIgnoredExpected[numFullScanIgnored] {
+    "a/b", "b/x/y", "d1"};
+
+constexpr int numFullScanIncluded = numScanFiles - numFullScanIgnored;
+constexpr std::string_view fullScanIncludedExpected[numFullScanIncluded] {
+    "a/c", "#c", "da"};
