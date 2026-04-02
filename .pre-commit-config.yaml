@@ -13,4 +13,5 @@ repos:
         args: ["--style=file", "-i"]
       - id: cppcheck
         args: ["--enable=all", "--language=c++", "--inline-suppr",
-          "--check-level=exhaustive"]
+          "--check-level=exhaustive", "--suppress=*:build/*",
+          "-Iinclude", "-Isrc", "-Itests", "-Iexamples"]
