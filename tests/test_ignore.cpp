@@ -26,6 +26,8 @@
 
 #include <ignorelib/ignorelib.h>
 
+namespace fs = std::filesystem;
+
 TEST(test_ignore, blank_line)
 {
     Ignorelib::IgnoreFile file {""};
@@ -69,10 +71,9 @@ TEST(test_ignore, dir_separators)
     EXPECT_TRUE(file.Ignored("b"));
     EXPECT_FALSE(file.Ignored("some/path/to/b"));
 
-    EXPECT_TRUE(file.Ignored("c/d", Ignorelib::FileType::directory));
-    EXPECT_FALSE(file.Ignored("c/d", Ignorelib::FileType::file));
-    EXPECT_FALSE(
-        file.Ignored("some/path/to/c/d", Ignorelib::FileType::directory));
+    EXPECT_TRUE(file.Ignored("c/d", fs::file_type::directory));
+    EXPECT_FALSE(file.Ignored("c/d", fs::file_type::regular));
+    EXPECT_FALSE(file.Ignored("some/path/to/c/d", fs::file_type::directory));
 }
 
 TEST(test_ignore, wildcard)
