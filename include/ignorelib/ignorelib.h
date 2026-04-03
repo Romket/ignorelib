@@ -85,18 +85,26 @@ namespace Ignorelib
         const std::vector<Pattern>& GetPatterns() const { return _patterns; }
 
     public:
-        bool Ignored(const fs::path& path,
-                     fs::file_type   type = fs::file_type::regular,
-                     bool            runEarlyReturnLogic = true) const;
+        bool IgnoredFast(const fs::path& path,
+                         fs::file_type   type = fs::file_type::regular) const;
+        bool IgnoredFull(const fs::path& path,
+                         fs::file_type   type = fs::file_type::regular) const;
 
-        std::vector<fs::path> ListIgnored(const fs::path& dir) const;
-        std::vector<fs::path> ListIncluded(const fs::path& dir) const;
+        std::vector<fs::path> ListIgnoredFast(const fs::path& dir) const;
+        std::vector<fs::path> ListIgnoredFull(const fs::path& dir) const;
 
-        std::vector<fs::path> ListIgnored() const
-        { return ListIgnored(fs::current_path()); }
+        std::vector<fs::path> ListIncludedFast(const fs::path& dir) const;
+        std::vector<fs::path> ListIncludedFull(const fs::path& dir) const;
 
-        std::vector<fs::path> ListIncluded() const
-        { return ListIncluded(fs::current_path()); }
+        std::vector<fs::path> ListIgnoredFast() const
+        { return ListIgnoredFast(fs::current_path()); }
+        std::vector<fs::path> ListIgnoredFull() const
+        { return ListIgnoredFull(fs::current_path()); }
+
+        std::vector<fs::path> ListIncludedFast() const
+        { return ListIncludedFast(fs::current_path()); }
+        std::vector<fs::path> ListIncludedFull() const
+        { return ListIncludedFull(fs::current_path()); }
 
     private:
         struct MatchesInfo
@@ -126,6 +134,29 @@ namespace Ignorelib
         std::vector<size_t> findSeparators(std::string_view sv) const;
 
         Matched matches(MatchesInfo&& info) const;
+
+        template<typename Fn>
+        void walk(const fs::path& dir, Fn&& f) const
+        {
+            if (!fs::is_directory(dir)) return;
+
+            for (fs::recursive_directory_iterator it {dir};
+                 it != fs::recursive_directory_iterator {}; ++it)
+            {
+                fs::path      path {fs::relative(it->path(), dir)};
+                fs::file_type type {it->status().type()};
+
+                if constexpr (std::invocable<Fn&, const fs::path&,
+                                             const fs::file_type&>)
+                    f(path, type);
+                else
+                    f(it, path, type);
+            }
+        }
+
+        size_t getLoopInfo(std::vector<size_t>& separators,
+                           const Pattern&       pattern,
+                           std::string_view     pathStr) const;
 
     private:
         std::vector<Pattern> _patterns;

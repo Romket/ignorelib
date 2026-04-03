@@ -36,14 +36,10 @@ namespace Ignorelib
             throw std::invalid_argument("Failed to open file");
 
         for (std::string line; std::getline(fileHandle, line);)
-        {
             addPattern(line);
-        }
     }
 
-    bool IgnoreFile::Ignored(const fs::path& path,
-                             fs::file_type   type,
-                             bool            runEarlyReturnLogic) const
+    bool IgnoreFile::IgnoredFast(const fs::path& path, fs::file_type type) const
     {
         if (fs::exists(path)) type = fs::status(path).type();
 
@@ -53,58 +49,48 @@ namespace Ignorelib
 
         for (const Pattern& pattern : _patterns)
         {
-            std::vector<size_t> separators {};
-            if (runEarlyReturnLogic || !pattern.TopLevelOnly)
-            {
-                separators = findSeparators(pathStr);
-                for (size_t i {0}; i <= pattern.SepCount; ++i)
-                    separators.push_back(pathStr.size());
-            }
+            std::vector<size_t> separators;
+            size_t loopTo = getLoopInfo(separators, pattern, pathStr);
 
-            if (runEarlyReturnLogic)
+            for (size_t i {0}; i < loopTo; ++i)
             {
                 MatchesInfo info {
-                    pathStr.substr(0, separators[pattern.SepCount]), path,
-                    pattern.Re, type, pattern.DirsOnly};
+                    pathStr.substr(separators[i],
+                                   separators[i + 1 + pattern.SepCount] -
+                                       separators[i] - 1),
+                    pathStr.substr(separators[i]), pattern.Re, type,
+                    pattern.DirsOnly};
 
                 Matched result = matches(std::move(info));
 
                 if (result.IsMatched) ignored = !pattern.Negated;
                 if (result.EarlyReturnMet) return ignored;
             }
-            else if (std::regex_match(pathStr, pattern.Re) &&
-                     (type == fs::file_type::directory || !pattern.DirsOnly))
-            {
-                return !pattern.Negated;
-            }
+        }
 
-            if (!pattern.TopLevelOnly)
+        return ignored;
+    }
+
+    bool IgnoreFile::IgnoredFull(const fs::path& path, fs::file_type type) const
+    {
+        if (fs::exists(path)) type = fs::status(path).type();
+
+        bool ignored = false;
+
+        std::string pathStr {path.string()};
+
+        for (const Pattern& pattern : _patterns)
+        {
+            std::vector<size_t> separators;
+            size_t loopTo = getLoopInfo(separators, pattern, pathStr);
+
+            for (size_t i {0}; i < loopTo; ++i)
             {
-                for (size_t i {0}; i + pattern.SepCount < separators.size() - 1;
-                     ++i)
+                if (std::regex_match(pathStr.substr(separators[i]),
+                                     pattern.Re) &&
+                    (type == fs::file_type::directory || !pattern.DirsOnly))
                 {
-                    if (runEarlyReturnLogic)
-                    {
-                        MatchesInfo subdirInfo {
-                            pathStr.substr(
-                                separators[i] + 1,
-                                separators[i + 1 + pattern.SepCount] -
-                                    (separators[i] + 1)),
-                            pathStr.substr(separators[i] + 1), pattern.Re, type,
-                            pattern.DirsOnly};
-
-                        Matched subdirResult = matches(std::move(subdirInfo));
-
-                        if (subdirResult.IsMatched) ignored = !pattern.Negated;
-                        if (subdirResult.EarlyReturnMet) return ignored;
-                    }
-                    else if (std::regex_match(pathStr.substr(separators[i] + 1),
-                                              pattern.Re) &&
-                             (type == fs::file_type::directory ||
-                              !pattern.DirsOnly))
-                    {
-                        return !pattern.Negated;
-                    }
+                    ignored = !pattern.Negated;
                 }
             }
         }
@@ -112,68 +98,86 @@ namespace Ignorelib
         return ignored;
     }
 
-    std::vector<fs::path> IgnoreFile::ListIgnored(const fs::path& dir) const
+    std::vector<fs::path> IgnoreFile::ListIgnoredFast(const fs::path& dir) const
     {
-        if (!fs::exists(dir) || !fs::is_directory(dir)) return {};
-
         std::vector<fs::path> ignored {};
 
-        for (auto it = fs::recursive_directory_iterator {dir};
-             it != fs::recursive_directory_iterator {}; ++it)
-        {
-            fs::path path = fs::relative(it->path(), dir);
-
-            fs::file_type type = it->status().type();
-
-            if (Ignored(path, type, false))
-            {
-                if (type == fs::file_type::directory)
-                {
-                    it.disable_recursion_pending();
-                    for (const auto& entry :
-                         fs::recursive_directory_iterator {path})
-                    {
-                        if (!fs::is_directory(entry))
-                            ignored.push_back(entry.path());
-                    }
-                }
-                else
-                    ignored.push_back(path);
-            }
-        }
+        walk(dir,
+             [&](auto& it, const fs::path& path, const fs::file_type& type) {
+                 if (IgnoredFull(path))
+                 {
+                     if (type == fs::file_type::directory)
+                     {
+                         it.disable_recursion_pending();
+                         for (const auto& entry :
+                              fs::recursive_directory_iterator {path})
+                         {
+                             if (!fs::is_directory(entry))
+                                 ignored.push_back(entry.path());
+                         }
+                     }
+                     else
+                         ignored.push_back(path);
+                 }
+             });
 
         return ignored;
     }
 
-    std::vector<fs::path> IgnoreFile::ListIncluded(const fs::path& dir) const
+    std::vector<fs::path> IgnoreFile::ListIgnoredFull(const fs::path& dir) const
     {
-        if (!fs::exists(dir) || !fs::is_directory(dir)) return {};
+        std::vector<fs::path> ignored {};
 
+        walk(dir, [&](const fs::path& path, const fs::file_type& type) {
+            if (IgnoredFull(path) && type == fs::file_type::regular)
+                ignored.push_back(path);
+        });
+
+        return ignored;
+    }
+
+    std::vector<fs::path>
+    IgnoreFile::ListIncludedFast(const fs::path& dir) const
+    {
         std::vector<fs::path> included {};
 
-        for (auto it = fs::recursive_directory_iterator {dir};
-             it != fs::recursive_directory_iterator {}; ++it)
-        {
-            fs::path path = fs::relative(it->path(), dir);
+        walk(dir,
+             [&](auto& it, const fs::path& path, const fs::file_type& type) {
+                 if (IgnoredFull(path) && type == fs::file_type::directory)
+                 {
+                     it.disable_recursion_pending();
+                     return;
+                 }
 
-            if (!Ignored(path))
-            {
-                if (it->status().type() == fs::file_type::regular)
-                    included.push_back(path);
-            }
-        }
+                 if (!IgnoredFull(path) &&
+                     it->status().type() == fs::file_type::regular)
+                     included.push_back(path);
+             });
 
         return included;
+    }
+
+    std::vector<fs::path>
+    IgnoreFile::ListIncludedFull(const fs::path& dir) const
+    {
+        std::vector<fs::path> ignored {};
+
+        walk(dir, [&](const fs::path& path, const fs::file_type& type) {
+            if (!IgnoredFull(path) && type == fs::file_type::regular)
+                ignored.push_back(path);
+        });
+
+        return ignored;
     }
 
     std::vector<size_t> IgnoreFile::findSeparators(std::string_view sv) const
     {
         std::vector<size_t> separators;
-        separators.reserve(sv.size());
+        separators.reserve(sv.size() - 1);
 
         for (auto [i, c] : std::views::enumerate(sv))
         {
-            if (c == '/') separators.push_back(static_cast<size_t>(i));
+            if (c == '/') separators.push_back(static_cast<size_t>(i + 1));
         }
 
         return separators;
@@ -183,8 +187,8 @@ namespace Ignorelib
     {
         Matched result {};
 
-        if (std::regex_match(info.First.begin(), info.First.end(), info.Re) &&
-            info.First != info.Full)
+        if (info.First != info.Full &&
+            std::regex_match(info.First.begin(), info.First.end(), info.Re))
         {
             result.IsMatched      = true;
             result.EarlyReturnMet = true;
@@ -199,5 +203,24 @@ namespace Ignorelib
         }
 
         return result;
+    }
+
+    size_t IgnoreFile::getLoopInfo(std::vector<size_t>& separators,
+                                   const Pattern&       pattern,
+                                   std::string_view     pathStr) const
+    {
+        separators.assign(pathStr.size() + pattern.SepCount + 1,
+                          pathStr.size() + 1);
+        separators[0] = 0;
+        std::vector<size_t> found {findSeparators(pathStr)};
+
+        size_t loopTo {1};
+        if (!pattern.TopLevelOnly && found.size() > pattern.SepCount)
+        {
+            std::ranges::copy(found, separators.begin() + 1);
+            loopTo = found.size() - pattern.SepCount + 1;
+        }
+
+        return loopTo;
     }
 } // namespace Ignorelib
