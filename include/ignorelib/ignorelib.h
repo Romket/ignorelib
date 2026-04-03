@@ -28,7 +28,6 @@
 #include <ignorelib/pattern.h>
 
 #include <filesystem>
-#include <fstream>
 #include <optional>
 #include <ranges>
 #include <string>
@@ -36,124 +35,87 @@
 #include <utility>
 #include <vector>
 
+namespace fs = std::filesystem;
+
 namespace Ignorelib
 {
-    enum class FileType
-    {
-        file,
-        directory
-    };
-
     class IgnoreFile
     {
     public:
-        explicit inline IgnoreFile(const std::filesystem::path& path)
-        { readFile(path); }
+        explicit IgnoreFile(const fs::path& path);
 
-        explicit inline IgnoreFile(std::filesystem::path&& path)
-        { readFile(std::move(path)); }
-
-        explicit inline IgnoreFile(std::vector<Pattern>&& vecPatterns) :
+        explicit IgnoreFile(std::vector<Pattern>&& vecPatterns) :
             _patterns {std::move(vecPatterns)}
         {}
 
-        explicit inline IgnoreFile(std::initializer_list<Pattern>&& patterns) :
-            _patterns(std::move(patterns.begin()), std::move(patterns.end()))
+        explicit IgnoreFile(std::initializer_list<Pattern>&& patterns) :
+            _patterns(std::make_move_iterator(patterns.begin()),
+                      std::make_move_iterator(patterns.end()))
         {}
 
         template<std::ranges::input_range R>
             requires(
                 std::convertible_to<std::ranges::range_value_t<R>, Pattern> &&
                 !std::same_as<std::remove_cvref_t<R>, IgnoreFile>)
-        explicit inline IgnoreFile(const R& patterns) :
-            _patterns {patterns.begin(), patterns.end()}
-        {}
-
-        template<std::ranges::input_range R>
-            requires(
-                std::convertible_to<std::ranges::range_value_t<R>, Pattern> &&
-                !std::same_as<std::remove_cvref_t<R>, IgnoreFile>)
-        explicit inline IgnoreFile(R&& patterns) :
+        explicit IgnoreFile(R&& patterns) :
             _patterns {std::move(patterns.begin()), std::move(patterns.end())}
         {}
 
-        explicit inline IgnoreFile(
-            std::initializer_list<std::string_view>&& range)
+        explicit IgnoreFile(std::initializer_list<std::string_view> range)
         {
-            for (std::string_view patternStr : range) addPattern(patternStr);
+            for (const auto& patternStr : range) addPattern(patternStr);
         }
 
         template<std::ranges::input_range R>
             requires(std::convertible_to<std::ranges::range_value_t<R>,
-                                         std::string_view> &&
-                     !std::same_as<std::remove_cvref_t<R>, IgnoreFile>)
-        explicit inline IgnoreFile(const R& range)
+                                         std::string_view>)
+        explicit IgnoreFile(R&& range)
         {
-            for (std::string_view patternStr : range) addPattern(patternStr);
+            for (const auto& patternStr : range) addPattern(patternStr);
         }
 
-        template<std::ranges::input_range R>
-            requires(std::convertible_to<std::ranges::range_value_t<R>,
-                                         std::string> &&
-                     !std::same_as<std::remove_cvref_t<R>, IgnoreFile>)
-        explicit inline IgnoreFile(R&& range)
-        {
-            for (std::string_view patternStr : range) addPattern(patternStr);
-        }
+        IgnoreFile(const IgnoreFile& other) = default;
+        IgnoreFile(IgnoreFile&& other)      = default;
 
-        inline IgnoreFile(const IgnoreFile& other) = default;
-        inline IgnoreFile(IgnoreFile&& other)      = default;
+        IgnoreFile& operator=(const IgnoreFile& other) = default;
+        IgnoreFile& operator=(IgnoreFile&& other)      = default;
 
-        inline IgnoreFile& operator=(const IgnoreFile& other) = default;
-        inline IgnoreFile& operator=(IgnoreFile&& other)      = default;
-
-        inline ~IgnoreFile() = default;
+        ~IgnoreFile() = default;
 
         const std::vector<Pattern>& GetPatterns() const { return _patterns; }
 
     public:
-        bool Ignored(std::string_view path,
-                     const FileType&  type                = FileType::file,
-                     bool             runEarlyReturnLogic = true);
+        bool Ignored(const fs::path& path,
+                     fs::file_type   type = fs::file_type::regular,
+                     bool            runEarlyReturnLogic = true) const;
 
-        inline std::vector<std::filesystem::path>
-        ListIgnored(const std::filesystem::path& dir)
-        { return getIgnoredList(std::filesystem::path {dir}); }
-        inline std::vector<std::filesystem::path>
-        ListIgnored(std::filesystem::path&& dir)
-        { return getIgnoredList(std::move(dir)); }
-        inline std::vector<std::filesystem::path> ListIgnored()
-        { return getIgnoredList(std::filesystem::current_path()); }
+        std::vector<fs::path> ListIgnored(const fs::path& dir) const;
+        std::vector<fs::path> ListIncluded(const fs::path& dir) const;
 
-        inline std::vector<std::filesystem::path>
-        ListIncluded(const std::filesystem::path& dir)
-        { return getIncludedList(std::filesystem::path {dir}); }
-        inline std::vector<std::filesystem::path>
-        ListIncluded(std::filesystem::path&& dir)
-        { return getIncludedList(std::move(dir)); }
-        inline std::vector<std::filesystem::path> ListIncluded()
-        { return getIncludedList(std::filesystem::current_path()); }
+        std::vector<fs::path> ListIgnored() const
+        { return ListIgnored(fs::current_path()); }
+
+        std::vector<fs::path> ListIncluded() const
+        { return ListIncluded(fs::current_path()); }
 
     private:
         struct MatchesInfo
         {
-            // cppcheck-suppress unusedStructMember
-            std::string_view First;
-            // cppcheck-suppress unusedStructMember
-            std::string_view  Full;
+            std::string       First;
+            std::string       Full;
             const std::regex& Re;
-            // cppcheck-suppress unusedStructMember
-            const bool& ToOutput;
-            // cppcheck-suppress unusedStructMember
-            bool& Out;
-            // cppcheck-suppress unusedStructMember
-            FileType File;
-            // cppcheck-suppress unusedStructMember
-            bool DirsOnly;
+            fs::file_type     File;
+            bool              DirsOnly;
+        };
+
+        struct Matched
+        {
+            bool IsMatched      = false;
+            bool EarlyReturnMet = false;
         };
 
     private:
-        inline void addPattern(std::string_view s)
+        void addPattern(std::string_view s)
         {
             if (s.empty() || s.front() == '#') return;
 
@@ -161,16 +123,9 @@ namespace Ignorelib
             if (result) _patterns.push_back(std::move(*result));
         }
 
-        void readFile(std::ifstream&& fileHandle);
+        std::vector<size_t> findSeparators(std::string_view sv) const;
 
-        std::vector<size_t> findSeparators(std::string_view sv);
-
-        bool matches(MatchesInfo&& info);
-
-        std::vector<std::filesystem::path>
-        getIgnoredList(std::filesystem::path&& dir);
-        std::vector<std::filesystem::path>
-        getIncludedList(std::filesystem::path&& dir);
+        Matched matches(MatchesInfo&& info) const;
 
     private:
         std::vector<Pattern> _patterns;

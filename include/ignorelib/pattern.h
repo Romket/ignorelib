@@ -35,21 +35,16 @@ namespace Ignorelib
     struct Pattern
     {
         std::regex Re;
-        // cppcheck-suppress unusedStructMember
-        bool Negated {false};
-        // cppcheck-suppress unusedStructMember
-        bool TopLevelOnly {false};
-        // cppcheck-suppress unusedStructMember
-        bool DirsOnly {false};
-        // cppcheck-suppress unusedStructMember
-        size_t SepCount {0};
+        bool       Negated {false};
+        bool       TopLevelOnly {false};
+        bool       DirsOnly {false};
+        size_t     SepCount {0};
     };
 
 #ifdef IGNORELIB_TESTS
     struct TestPattern
     {
-        Pattern P;
-        // cppcheck-suppress unusedStructMember
+        Pattern     P;
         std::string Str;
     };
 #endif
