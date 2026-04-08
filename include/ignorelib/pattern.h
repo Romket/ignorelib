@@ -32,13 +32,22 @@
 
 namespace Ignorelib
 {
+    /**
+     * @brief Struct representing a single ignore pattern.
+     */
     struct Pattern
     {
-        std::regex Re;
-        bool       Negated {false};
-        bool       TopLevelOnly {false};
-        bool       DirsOnly {false};
-        size_t     SepCount {0};
+        std::regex Re;              ///< A regex string for pattern matching.
+        bool       Negated {false}; ///< Is pattern negated (starts with '!')?
+        bool       TopLevelOnly {false}; ///< Does pattern only apply to top
+                                         ///< level paths ('/' at beginning or
+                                         ///< middle, cancelled by "**/" at the
+                                         ///< start of the pattern)?
+        bool DirsOnly {false}; ///< Does pattern only apply to directories (ends
+                               ///< with '/')?
+        size_t SepCount {0};   ///< The number of directory separators in a
+                               ///< pattern, excluding leading or trailing
+                               ///< separators.
     };
 
 #ifdef IGNORELIB_TESTS
