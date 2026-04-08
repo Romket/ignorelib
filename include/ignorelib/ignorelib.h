@@ -37,22 +37,66 @@
 
 namespace fs = std::filesystem;
 
+/**
+ * @brief Main Ignorelib namespace.
+ */
 namespace Ignorelib
 {
+    /**
+     * @brief A class representing a .gitignore-style file.
+     *
+     * Contains methods for loading patterns from files, parsing from strings,
+     * matching individual patterns, and listing matched files from a directory.
+     */
     class IgnoreFile
     {
     public:
+        /**
+         * @brief Construct a new IgnoreFile object.
+         *
+         * Loads patterns from a .gitignore-style file.
+         *
+         * @param path The path to the file.
+         */
         explicit IgnoreFile(const fs::path& path);
 
-        explicit IgnoreFile(std::vector<Pattern>&& vecPatterns) :
-            _patterns {std::move(vecPatterns)}
+        /**
+         * @brief Construct a new IgnoreFile object.
+         *
+         * Loads patterns from a pre-made list of Pattern objects.
+         *
+         * @param patterns A vector of Pattern objects to load.
+         *
+         * @sa Pattern
+         */
+        explicit IgnoreFile(std::vector<Pattern>&& patterns) :
+            _patterns {std::move(patterns)}
         {}
 
+        /**
+         * @brief Construct a new IgnoreFile object.
+         *
+         * Loads patterns from a pre-made list of Pattern objects.
+         *
+         * @param patterns A list of Pattern objects to load.
+         *
+         * @sa Pattern
+         */
         explicit IgnoreFile(std::initializer_list<Pattern>&& patterns) :
             _patterns(std::make_move_iterator(patterns.begin()),
                       std::make_move_iterator(patterns.end()))
         {}
 
+        /**
+         * @brief Construct a new IgnoreFile object.
+         *
+         * Loads patterns from a pre-made list of Pattern objects.
+         *
+         * @tparam R An arbitrary container of Pattern objects.
+         * @param patterns A container of Pattern objects to load.
+         *
+         * @sa Pattern
+         */
         template<std::ranges::input_range R>
             requires(
                 std::convertible_to<std::ranges::range_value_t<R>, Pattern> &&
@@ -61,11 +105,28 @@ namespace Ignorelib
             _patterns {std::move(patterns.begin()), std::move(patterns.end())}
         {}
 
+        /**
+         * @brief Construct a new IgnoreFile object.
+         *
+         * Generates patterns from a list of strings. These strings should
+         * follow .gitignore syntax.
+         *
+         * @param range A list of strings representing lines in an ignore file.
+         */
         explicit IgnoreFile(std::initializer_list<std::string_view> range)
         {
             for (const auto& patternStr : range) addPattern(patternStr);
         }
 
+        /**
+         * @brief Construct a new IgnoreFile object.
+         *
+         * Generates patterns from a list of strings. These strings should
+         * follow .gitignore syntax.
+         *
+         * @tparam R An arbitrary container of strings.
+         * @param range A list of strings representing lines in an ignore file.
+         */
         template<std::ranges::input_range R>
             requires(std::convertible_to<std::ranges::range_value_t<R>,
                                          std::string_view>)
@@ -74,35 +135,200 @@ namespace Ignorelib
             for (const auto& patternStr : range) addPattern(patternStr);
         }
 
+        /**
+         * @brief Default copy construnctor.
+         *
+         * @param other IgnoreFile object to copy from.
+         */
         IgnoreFile(const IgnoreFile& other) = default;
-        IgnoreFile(IgnoreFile&& other)      = default;
 
+        /**
+         * @brief Default move constructor.
+         *
+         * @param other IgnoreFile object to move from.
+         */
+        IgnoreFile(IgnoreFile&& other) = default;
+
+        /**
+         * @brief Default copy assignment operator.
+         *
+         * @param other IgnoreFile object to copy from.
+         * @return IgnoreFile& The IgnoreFile object copied to.
+         */
         IgnoreFile& operator=(const IgnoreFile& other) = default;
-        IgnoreFile& operator=(IgnoreFile&& other)      = default;
 
+        /**
+         * @brief Default move assignment operator.
+         *
+         * @param other IgnoreFile object to move from.
+         * @return IgnoreFile& The IgnoreFile object moved to.
+         */
+        IgnoreFile& operator=(IgnoreFile&& other) = default;
+
+        /**
+         * @brief Default IgnoreFile destructor
+         */
         ~IgnoreFile() = default;
 
+        /**
+         * @brief Get the _patterns object.
+         *
+         * @return const std::vector<Pattern>& The _patterns object.
+         */
         const std::vector<Pattern>& GetPatterns() const { return _patterns; }
 
     public:
+        /**
+         * @brief Check if a path is ignored using "Fast" behavior.
+         *
+         * The "Fast" behavior describes an optimization git uses in checking
+         * files against a .gitignore file. If a pattern excludes a file's
+         * containing directory, it will exclude the pattern from being negated
+         * later.
+         *
+         * Despite the name, the individual file checks are usually
+         * slower using the "Fast" behavior, as containing directories need to
+         * be found and tested against. This is not always the case, as it does
+         * allow for early returns.
+         *
+         * @param path The path to check.
+         * @param type The type of the file.
+         * @return true The path is ignored.
+         * @return false The path is not ignored.
+         */
         bool IgnoredFast(const fs::path& path,
                          fs::file_type   type = fs::file_type::regular) const;
+
+        /**
+         * @brief Check if a path is ignored using "Full" behavior.
+         *
+         * The "Full" behavior means that if a containing path is ignored, this
+         * will still be searched. This is in contrast to the behavior of git
+         * and .gitignore, where if a containing directory is ignored,
+         * everything within is ignored regardless of if it is later negated.
+         *
+         * Despite the name, the individual file checks are usually
+         * faster using the "Full" behavior, as fewer regex tests are required
+         * per pattern. This is not always the case, as the path must be tested
+         * against every pattern.
+         *
+         * @param path The path to check.
+         * @param type The type of the file.
+         * @return true The path is ignored.
+         * @return false The path is not ignored.
+         */
         bool IgnoredFull(const fs::path& path,
                          fs::file_type   type = fs::file_type::regular) const;
 
+        /**
+         * @brief Lists all ignored files in a given directory using "Fast"
+         * behavior.
+         *
+         * The "Fast" behavior describes an optimization git uses in checking
+         * files against a .gitignore file. If a directory is ignored, none of
+         * the files it contains will be checked.
+         *
+         * @param dir The directory to scan.
+         * @return std::vector<fs::path> A list of ignored files.
+         */
         std::vector<fs::path> ListIgnoredFast(const fs::path& dir) const;
+
+        /**
+         * @brief Lists all ignored files in a given directory using "Full"
+         * behavior.
+         *
+         * The "Full" behavior means that if a directory is ignored, all files
+         * it contains will still be searched. This is in contrast to the
+         * behavior of git and .gitignore, where if a containing directory is
+         * ignored, everything within is ignored regardless of if it is later
+         * negated.
+         *
+         * @param dir The directory to scan.
+         * @return std::vector<fs::path> A list of ignored files.
+         */
         std::vector<fs::path> ListIgnoredFull(const fs::path& dir) const;
 
+        /**
+         * @brief Lists all included files in a given directory using "Fast"
+         * behavior.
+         *
+         * The "Fast" behavior describes an optimization git uses in checking
+         * files against a .gitignore file. If a directory is ignored, none of
+         * the files it contains will be checked.
+         *
+         * @param dir The directory to scan.
+         * @return std::vector<fs::path> A list of included files.
+         */
         std::vector<fs::path> ListIncludedFast(const fs::path& dir) const;
+
+        /**
+         * @brief Lists all included files in a given directory using "Full"
+         * behavior.
+         *
+         * The "Full" behavior means that if a directory is ignored, all files
+         * it contains will still be searched. This is in contrast to the
+         * behavior of git and .gitignore, where if a containing directory is
+         * ignored, everything within is ignored regardless of if it is later
+         * negated.
+         *
+         * @param dir The directory to scan.
+         * @return std::vector<fs::path> A list of included files.
+         */
         std::vector<fs::path> ListIncludedFull(const fs::path& dir) const;
 
+        /**
+         * @brief Lists all ignored files in the current working directory using
+         * "Fast" behavior.
+         *
+         * The "Fast" behavior describes an optimization git uses in checking
+         * files against a .gitignore file. If a directory is ignored, none of
+         * the files it contains will be checked.
+         *
+         * @return std::vector<fs::path> A list of ignored files.
+         */
         std::vector<fs::path> ListIgnoredFast() const
         { return ListIgnoredFast(fs::current_path()); }
+
+        /**
+         * @brief Lists all ignored files in the current working directory using
+         * "Full" behavior.
+         *
+         * The "Full" behavior means that if a directory is ignored, all files
+         * it contains will still be searched. This is in contrast to the
+         * behavior of git and .gitignore, where if a containing directory is
+         * ignored, everything within is ignored regardless of if it is later
+         * negated.
+         *
+         * @return std::vector<fs::path> A list of ignored files.
+         */
         std::vector<fs::path> ListIgnoredFull() const
         { return ListIgnoredFull(fs::current_path()); }
 
+        /**
+         * @brief Lists all included files in the current working directory
+         * using "Fast" behavior.
+         *
+         * The "Fast" behavior describes an optimization git uses in checking
+         * files against a .gitignore file. If a directory is ignored, none of
+         * the files it contains will be checked.
+         *
+         * @return std::vector<fs::path> A list of included files.
+         */
         std::vector<fs::path> ListIncludedFast() const
         { return ListIncludedFast(fs::current_path()); }
+
+        /**
+         * @brief Lists all included files in the current working directory
+         * using "Full" behavior.
+         *
+         * The "Full" behavior means that if a directory is ignored, all files
+         * it contains will still be searched. This is in contrast to the
+         * behavior of git and .gitignore, where if a containing directory is
+         * ignored, everything within is ignored regardless of if it is later
+         * negated.
+         *
+         * @return std::vector<fs::path> A list of included files.
+         */
         std::vector<fs::path> ListIncludedFull() const
         { return ListIncludedFull(fs::current_path()); }
 
