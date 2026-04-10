@@ -24,6 +24,7 @@
 
 #include <ignorelib/ignorelib.h>
 
+#include <algorithm>
 #include <fstream>
 
 namespace Ignorelib
