@@ -37,17 +37,29 @@ namespace Ignorelib
      */
     struct Pattern
     {
-        std::regex Re;              ///< A regex string for pattern matching.
-        bool       Negated {false}; ///< Is pattern negated (starts with '!')?
-        bool       TopLevelOnly {false}; ///< Does pattern only apply to top
-                                         ///< level paths ('/' at beginning or
-                                         ///< middle, cancelled by "**/" at the
-                                         ///< start of the pattern)?
-        bool DirsOnly {false}; ///< Does pattern only apply to directories (ends
-                               ///< with '/')?
-        size_t SepCount {0};   ///< The number of directory separators in a
-                               ///< pattern, excluding leading or trailing
-                               ///< separators.
+        /** @brief A regex string for pattern matching. */
+        std::regex Re;
+
+        /** @brief Is pattern negated (starts with `!`)? */
+        bool Negated {false};
+
+        /**
+         * @brief Does pattern only apply to top level paths?
+         *
+         * (`/` at beginning or middle, cancelled by `**` `/` at the start of
+         * the pattern)?
+         */
+        bool TopLevelOnly {false};
+
+        /** @brief Does pattern only apply to directories (ends with `/`)? */
+        bool DirsOnly {false};
+
+        /**
+         * @brief The number of directory separators in a pattern.
+         *
+         * This is excluding leading or trailing separators.
+         */
+        size_t SepCount {0};
     };
 
 #ifdef IGNORELIB_TESTS
