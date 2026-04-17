@@ -78,6 +78,7 @@ TEST(test_ignore, negate)
     EXPECT_TRUE(file.IgnoredFast("!negated"));
 
     EXPECT_TRUE(file.IgnoredFast("a/contained"));
+    EXPECT_TRUE(file.IgnoredFast("a/other"));
 
     //* IgnoredFull testing
 
@@ -88,6 +89,7 @@ TEST(test_ignore, negate)
     EXPECT_TRUE(file.IgnoredFull("!negated"));
 
     EXPECT_FALSE(file.IgnoredFull("a/contained"));
+    EXPECT_TRUE(file.IgnoredFull("a/other"));
 }
 
 TEST(test_ignore, dir_separators)
