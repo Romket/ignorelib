@@ -1,2 +1,5 @@
 # CMake build files
-build/
+build
+
+# Doxygen output files
+docs
