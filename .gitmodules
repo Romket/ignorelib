@@ -1,0 +1,3 @@
+[submodule "lib/re2"]
+	path = lib/re2
+	url = https://github.com/google/re2.git
