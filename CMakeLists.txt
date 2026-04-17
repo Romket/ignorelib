@@ -49,7 +49,11 @@ add_library(ignorelib::ignorelib ALIAS ignorelib)
 # ignorelib dependencies
 #----------------------------------------------------------------------------------------------------------------------
 
-# Search for your dependencies here
+set(IGNORELIB_LIBRARIES_DIR ${CMAKE_SOURCE_DIR}/lib)
+
+add_subdirectory(${IGNORELIB_LIBRARIES_DIR}/re2)
+
+target_link_libraries(ignorelib PUBLIC re2::re2)
 
 #----------------------------------------------------------------------------------------------------------------------
 # ignorelib sources
