@@ -40,65 +40,6 @@ namespace Ignorelib
             addPattern(line);
     }
 
-    bool IgnoreFile::IgnoredFast(const fs::path& path, fs::file_type type) const
-    {
-        if (fs::exists(path)) type = fs::status(path).type();
-
-        bool ignored = false;
-
-        std::string pathStr {path.string()};
-
-        for (const Pattern& pattern : _patterns)
-        {
-            std::vector<size_t> separators;
-            size_t loopTo = getLoopInfo(separators, pattern, pathStr);
-
-            for (size_t i {0}; i < loopTo; ++i)
-            {
-                MatchesInfo info {
-                    pathStr.substr(separators[i],
-                                   separators[i + 1 + pattern.SepCount] -
-                                       separators[i] - 1),
-                    pathStr.substr(separators[i]), pattern.Re, type,
-                    pattern.DirsOnly};
-
-                Matched result = matches(std::move(info));
-
-                if (result.IsMatched) ignored = !pattern.Negated;
-                if (result.EarlyReturnMet) return ignored;
-            }
-        }
-
-        return ignored;
-    }
-
-    bool IgnoreFile::IgnoredFull(const fs::path& path, fs::file_type type) const
-    {
-        if (fs::exists(path)) type = fs::status(path).type();
-
-        bool ignored = false;
-
-        std::string pathStr {path.string()};
-
-        for (const Pattern& pattern : _patterns)
-        {
-            std::vector<size_t> separators;
-            size_t loopTo = getLoopInfo(separators, pattern, pathStr);
-
-            for (size_t i {0}; i < loopTo; ++i)
-            {
-                if (std::regex_match(pathStr.substr(separators[i]),
-                                     pattern.Re) &&
-                    (type == fs::file_type::directory || !pattern.DirsOnly))
-                {
-                    ignored = !pattern.Negated;
-                }
-            }
-        }
-
-        return ignored;
-    }
-
     std::vector<fs::path> IgnoreFile::ListIgnoredFast(const fs::path& dir) const
     {
         std::vector<fs::path> ignored {};
@@ -167,6 +108,40 @@ namespace Ignorelib
             if (!IgnoredFull(path) && type == fs::file_type::regular)
                 ignored.push_back(path);
         });
+
+        return ignored;
+    }
+
+    bool IgnoreFile::ignoredUtil(const fs::path& path,
+                                 fs::file_type   type,
+                                 bool            isFullMatch) const
+    {
+        if (fs::exists(path)) type = fs::status(path).type();
+
+        bool ignored = false;
+
+        std::string pathStr {path.string()};
+
+        for (const Pattern& pattern : _patterns)
+        {
+            std::vector<size_t> separators;
+            size_t loopTo = getLoopInfo(separators, pattern, pathStr);
+
+            for (size_t i {0}; i < loopTo; ++i)
+            {
+                MatchesInfo info {
+                    pathStr.substr(separators[i],
+                                   separators[i + 1 + pattern.SepCount] -
+                                       separators[i] - 1),
+                    pathStr.substr(separators[i]), pattern.Re, type,
+                    pattern.DirsOnly};
+
+                Matched result = matches(std::move(info));
+
+                if (result.IsMatched) ignored = !pattern.Negated;
+                if (!isFullMatch && result.EarlyReturnMet) return ignored;
+            }
+        }
 
         return ignored;
     }

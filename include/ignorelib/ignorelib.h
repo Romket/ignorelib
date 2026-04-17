@@ -186,18 +186,14 @@ namespace Ignorelib
          * containing directory, it will exclude the pattern from being negated
          * later.
          *
-         * Despite the name, the individual file checks are usually
-         * slower using the "Fast" behavior, as containing directories need to
-         * be found and tested against. This is not always the case, as it does
-         * allow for early returns.
-         *
          * @param path The path to check.
          * @param type The type of the file.
          * @return true The path is ignored.
          * @return false The path is not ignored.
          */
         bool IgnoredFast(const fs::path& path,
-                         fs::file_type   type = fs::file_type::regular) const;
+                         fs::file_type   type = fs::file_type::regular) const
+        { return ignoredUtil(path, type, false); }
 
         /**
          * @brief Check if a path is ignored using "Full" behavior.
@@ -207,18 +203,14 @@ namespace Ignorelib
          * and .gitignore, where if a containing directory is ignored,
          * everything within is ignored regardless of if it is later negated.
          *
-         * Despite the name, the individual file checks are usually
-         * faster using the "Full" behavior, as fewer regex tests are required
-         * per pattern. This is not always the case, as the path must be tested
-         * against every pattern.
-         *
          * @param path The path to check.
          * @param type The type of the file.
          * @return true The path is ignored.
          * @return false The path is not ignored.
          */
         bool IgnoredFull(const fs::path& path,
-                         fs::file_type   type = fs::file_type::regular) const;
+                         fs::file_type   type = fs::file_type::regular) const
+        { return ignoredUtil(path, type, true); }
 
         /**
          * @brief Lists all ignored files in a given directory using "Fast"
@@ -356,6 +348,10 @@ namespace Ignorelib
             const auto result = IgnoreUtils::ConvToPattern(s);
             if (result) _patterns.push_back(std::move(*result));
         }
+
+        bool ignoredUtil(const fs::path& path,
+                         fs::file_type   type,
+                         bool            isFullMatch) const;
 
         std::vector<size_t> findSeparators(std::string_view sv) const;
 
