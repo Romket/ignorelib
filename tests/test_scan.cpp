@@ -35,14 +35,27 @@ TEST(test_scan, list_ignored)
 
     TempWorkingDir temp;
 
-    auto ignored = file.ListIgnored();
+    auto ignoredFast = file.ListIgnoredFast();
+    auto ingoredFull = file.ListIgnoredFull();
 
-    EXPECT_EQ(ignored.size(), numScanIgnored);
+    EXPECT_EQ(ignoredFast.size(), numFastScanIgnored);
+    EXPECT_EQ(ingoredFull.size(), numFullScanIgnored);
 
-    for (const auto& path : ignored)
+    for (const auto& path : ignoredFast)
     {
         bool found = false;
-        for (const auto& expected : scanIgnoredExpected)
+        for (const auto& expected : fastScanIgnoredExpected)
+        {
+            if (path.string() == expected) found = true;
+        }
+
+        EXPECT_TRUE(found);
+    }
+
+    for (const auto& path : ingoredFull)
+    {
+        bool found = false;
+        for (const auto& expected : fullScanIgnoredExpected)
         {
             if (path.string() == expected) found = true;
         }
@@ -57,14 +70,27 @@ TEST(test_scan, list_included)
 
     TempWorkingDir temp;
 
-    auto included = file.ListIncluded();
+    auto includedFast = file.ListIncludedFast();
+    auto includedFull = file.ListIncludedFull();
 
-    EXPECT_EQ(included.size(), numScanIncluded);
+    EXPECT_EQ(includedFast.size(), numFastScanIncluded);
+    EXPECT_EQ(includedFull.size(), numFullScanIncluded);
 
-    for (const auto& path : included)
+    for (const auto& path : includedFast)
     {
         bool found = false;
-        for (const auto& expected : scanIncludedExpected)
+        for (const auto& expected : fastScanIncludedExpected)
+        {
+            if (path.string() == expected) found = true;
+        }
+
+        EXPECT_TRUE(found);
+    }
+
+    for (const auto& path : includedFull)
+    {
+        bool found = false;
+        for (const auto& expected : fullScanIncludedExpected)
         {
             if (path.string() == expected) found = true;
         }

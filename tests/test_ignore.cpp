@@ -26,23 +26,42 @@
 
 #include <ignorelib/ignorelib.h>
 
+namespace fs = std::filesystem;
+
 TEST(test_ignore, blank_line)
 {
     Ignorelib::IgnoreFile file {""};
 
-    EXPECT_FALSE(file.Ignored("test"));
-    EXPECT_FALSE(file.Ignored(""));
+    //* IgnoredFast testing
+
+    EXPECT_FALSE(file.IgnoredFast("test"));
+    EXPECT_FALSE(file.IgnoredFast(""));
+
+    //* IgnoredFull testing
+
+    EXPECT_FALSE(file.IgnoredFull("test"));
+    EXPECT_FALSE(file.IgnoredFull(""));
 }
 
 TEST(test_ignore, comment)
 {
     Ignorelib::IgnoreFile file {"#comment", "\\#escaped"};
 
-    EXPECT_FALSE(file.Ignored("comment"));
-    EXPECT_FALSE(file.Ignored("#comment"));
+    //* IgnoredFast testing
 
-    EXPECT_FALSE(file.Ignored("escaped"));
-    EXPECT_TRUE(file.Ignored("#escaped"));
+    EXPECT_FALSE(file.IgnoredFast("comment"));
+    EXPECT_FALSE(file.IgnoredFast("#comment"));
+
+    EXPECT_FALSE(file.IgnoredFast("escaped"));
+    EXPECT_TRUE(file.IgnoredFast("#escaped"));
+
+    //* IgnoredFull testing
+
+    EXPECT_FALSE(file.IgnoredFull("comment"));
+    EXPECT_FALSE(file.IgnoredFull("#comment"));
+
+    EXPECT_FALSE(file.IgnoredFull("escaped"));
+    EXPECT_TRUE(file.IgnoredFull("#escaped"));
 }
 
 TEST(test_ignore, negate)
@@ -50,44 +69,87 @@ TEST(test_ignore, negate)
     Ignorelib::IgnoreFile file {"pattern", "!negated", "\\!negated", "a",
                                 "!a/contained"};
 
-    EXPECT_TRUE(file.Ignored("pattern"));
+    //* IgnoredFast testing
 
-    EXPECT_FALSE(file.Ignored("negated"));
+    EXPECT_TRUE(file.IgnoredFast("pattern"));
 
-    EXPECT_TRUE(file.Ignored("!negated"));
+    EXPECT_FALSE(file.IgnoredFast("negated"));
 
-    EXPECT_TRUE(file.Ignored("a/contained"));
+    EXPECT_TRUE(file.IgnoredFast("!negated"));
+
+    EXPECT_TRUE(file.IgnoredFast("a/contained"));
+    EXPECT_TRUE(file.IgnoredFast("a/other"));
+
+    //* IgnoredFull testing
+
+    EXPECT_TRUE(file.IgnoredFull("pattern"));
+
+    EXPECT_FALSE(file.IgnoredFull("negated"));
+
+    EXPECT_TRUE(file.IgnoredFull("!negated"));
+
+    EXPECT_FALSE(file.IgnoredFull("a/contained"));
+    EXPECT_TRUE(file.IgnoredFull("a/other"));
 }
 
 TEST(test_ignore, dir_separators)
 {
     Ignorelib::IgnoreFile file {"a", "/b", "c/d/"};
 
-    EXPECT_TRUE(file.Ignored("a"));
-    EXPECT_TRUE(file.Ignored("some/path/to/a"));
+    //* IgnoredFast testing
 
-    EXPECT_TRUE(file.Ignored("b"));
-    EXPECT_FALSE(file.Ignored("some/path/to/b"));
+    EXPECT_TRUE(file.IgnoredFast("a"));
+    EXPECT_TRUE(file.IgnoredFast("some/path/to/a"));
 
-    EXPECT_TRUE(file.Ignored("c/d", Ignorelib::FileType::directory));
-    EXPECT_FALSE(file.Ignored("c/d", Ignorelib::FileType::file));
+    EXPECT_TRUE(file.IgnoredFast("b"));
+    EXPECT_FALSE(file.IgnoredFast("some/path/to/b"));
+
+    EXPECT_TRUE(file.IgnoredFast("c/d", fs::file_type::directory));
+    EXPECT_FALSE(file.IgnoredFast("c/d", fs::file_type::regular));
     EXPECT_FALSE(
-        file.Ignored("some/path/to/c/d", Ignorelib::FileType::directory));
+        file.IgnoredFast("some/path/to/c/d", fs::file_type::directory));
+
+    //* IgnoredFull testing
+
+    EXPECT_TRUE(file.IgnoredFull("a"));
+    EXPECT_TRUE(file.IgnoredFull("some/path/to/a"));
+
+    EXPECT_TRUE(file.IgnoredFull("b"));
+    EXPECT_FALSE(file.IgnoredFull("some/path/to/b"));
+
+    EXPECT_TRUE(file.IgnoredFull("c/d", fs::file_type::directory));
+    EXPECT_FALSE(file.IgnoredFull("c/d", fs::file_type::regular));
+    EXPECT_FALSE(
+        file.IgnoredFull("some/path/to/c/d", fs::file_type::directory));
 }
 
 TEST(test_ignore, wildcard)
 {
     Ignorelib::IgnoreFile file {"a*b", "c?d"};
 
-    EXPECT_TRUE(file.Ignored("ab"));
-    EXPECT_TRUE(file.Ignored("axb"));
-    EXPECT_TRUE(file.Ignored("atestb"));
-    EXPECT_FALSE(file.Ignored("a/b"));
+    //* IgnoredFast testing
 
-    EXPECT_TRUE(file.Ignored("cxd"));
-    EXPECT_FALSE(file.Ignored("cd"));
-    EXPECT_FALSE(file.Ignored("ctestd"));
-    EXPECT_FALSE(file.Ignored("c/d"));
+    EXPECT_TRUE(file.IgnoredFast("ab"));
+    EXPECT_TRUE(file.IgnoredFast("axb"));
+    EXPECT_TRUE(file.IgnoredFast("atestb"));
+    EXPECT_FALSE(file.IgnoredFast("a/b"));
+
+    EXPECT_TRUE(file.IgnoredFast("cxd"));
+    EXPECT_FALSE(file.IgnoredFast("cd"));
+    EXPECT_FALSE(file.IgnoredFast("ctestd"));
+    EXPECT_FALSE(file.IgnoredFast("c/d"));
+
+    //* IgnoredFull testing
+
+    EXPECT_TRUE(file.IgnoredFull("ab"));
+    EXPECT_TRUE(file.IgnoredFull("axb"));
+    EXPECT_TRUE(file.IgnoredFull("atestb"));
+    EXPECT_FALSE(file.IgnoredFull("a/b"));
+
+    EXPECT_TRUE(file.IgnoredFull("cxd"));
+    EXPECT_FALSE(file.IgnoredFull("cd"));
+    EXPECT_FALSE(file.IgnoredFull("ctestd"));
+    EXPECT_FALSE(file.IgnoredFull("c/d"));
 }
 
 TEST(test_ignore, character_class)
@@ -95,79 +157,156 @@ TEST(test_ignore, character_class)
     Ignorelib::IgnoreFile file {"a[a-z]", "b[0-9]",  "c[A-Z]",
                                 "d[123]", "e[^a-z]", "f\\[ab]"};
 
-    EXPECT_TRUE(file.Ignored("ab"));
-    EXPECT_FALSE(file.Ignored("aB"));
-    EXPECT_FALSE(file.Ignored("a3"));
-    EXPECT_FALSE(file.Ignored("abc"));
+    //* IgnoredFast testing
 
-    EXPECT_TRUE(file.Ignored("b3"));
-    EXPECT_FALSE(file.Ignored("bq"));
-    EXPECT_FALSE(file.Ignored("bG"));
-    EXPECT_FALSE(file.Ignored("b83"));
+    EXPECT_TRUE(file.IgnoredFast("ab"));
+    EXPECT_FALSE(file.IgnoredFast("aB"));
+    EXPECT_FALSE(file.IgnoredFast("a3"));
+    EXPECT_FALSE(file.IgnoredFast("abc"));
 
-    EXPECT_TRUE(file.Ignored("cH"));
-    EXPECT_FALSE(file.Ignored("ca"));
-    EXPECT_FALSE(file.Ignored("c3"));
-    EXPECT_FALSE(file.Ignored("cKH"));
+    EXPECT_TRUE(file.IgnoredFast("b3"));
+    EXPECT_FALSE(file.IgnoredFast("bq"));
+    EXPECT_FALSE(file.IgnoredFast("bG"));
+    EXPECT_FALSE(file.IgnoredFast("b83"));
 
-    EXPECT_TRUE(file.Ignored("d1"));
-    EXPECT_FALSE(file.Ignored("d5"));
-    EXPECT_FALSE(file.Ignored("da"));
-    EXPECT_FALSE(file.Ignored("d23"));
+    EXPECT_TRUE(file.IgnoredFast("cH"));
+    EXPECT_FALSE(file.IgnoredFast("ca"));
+    EXPECT_FALSE(file.IgnoredFast("c3"));
+    EXPECT_FALSE(file.IgnoredFast("cKH"));
 
-    EXPECT_TRUE(file.Ignored("e3"));
-    EXPECT_TRUE(file.Ignored("eR"));
-    EXPECT_FALSE(file.Ignored("ea"));
-    EXPECT_FALSE(file.Ignored("e8G"));
+    EXPECT_TRUE(file.IgnoredFast("d1"));
+    EXPECT_FALSE(file.IgnoredFast("d5"));
+    EXPECT_FALSE(file.IgnoredFast("da"));
+    EXPECT_FALSE(file.IgnoredFast("d23"));
 
-    EXPECT_TRUE(file.Ignored("f[ab]"));
-    EXPECT_FALSE(file.Ignored("fa"));
+    EXPECT_TRUE(file.IgnoredFast("e3"));
+    EXPECT_TRUE(file.IgnoredFast("eR"));
+    EXPECT_FALSE(file.IgnoredFast("ea"));
+    EXPECT_FALSE(file.IgnoredFast("e8G"));
+
+    EXPECT_TRUE(file.IgnoredFast("f[ab]"));
+    EXPECT_FALSE(file.IgnoredFast("fa"));
+
+    //* IgnoredFull testing
+
+    EXPECT_TRUE(file.IgnoredFull("ab"));
+    EXPECT_FALSE(file.IgnoredFull("aB"));
+    EXPECT_FALSE(file.IgnoredFull("a3"));
+    EXPECT_FALSE(file.IgnoredFull("abc"));
+
+    EXPECT_TRUE(file.IgnoredFull("b3"));
+    EXPECT_FALSE(file.IgnoredFull("bq"));
+    EXPECT_FALSE(file.IgnoredFull("bG"));
+    EXPECT_FALSE(file.IgnoredFull("b83"));
+
+    EXPECT_TRUE(file.IgnoredFull("cH"));
+    EXPECT_FALSE(file.IgnoredFull("ca"));
+    EXPECT_FALSE(file.IgnoredFull("c3"));
+    EXPECT_FALSE(file.IgnoredFull("cKH"));
+
+    EXPECT_TRUE(file.IgnoredFull("d1"));
+    EXPECT_FALSE(file.IgnoredFull("d5"));
+    EXPECT_FALSE(file.IgnoredFull("da"));
+    EXPECT_FALSE(file.IgnoredFull("d23"));
+
+    EXPECT_TRUE(file.IgnoredFull("e3"));
+    EXPECT_TRUE(file.IgnoredFull("eR"));
+    EXPECT_FALSE(file.IgnoredFull("ea"));
+    EXPECT_FALSE(file.IgnoredFull("e8G"));
+
+    EXPECT_TRUE(file.IgnoredFull("f[ab]"));
+    EXPECT_FALSE(file.IgnoredFull("fa"));
 }
 
 TEST(test_ignore, escaped)
 {
     Ignorelib::IgnoreFile file {"\\a", "\\\\b", "c\\"};
 
-    EXPECT_TRUE(file.Ignored("a"));
-    EXPECT_FALSE(file.Ignored("\\a"));
+    //* IgnoredFast testing
 
-    EXPECT_FALSE(file.Ignored("b"));
-    EXPECT_TRUE(file.Ignored("\\b"));
+    EXPECT_TRUE(file.IgnoredFast("a"));
+    EXPECT_FALSE(file.IgnoredFast("\\a"));
 
-    EXPECT_FALSE(file.Ignored("c"));
-    EXPECT_FALSE(file.Ignored("c\\"));
+    EXPECT_FALSE(file.IgnoredFast("b"));
+    EXPECT_TRUE(file.IgnoredFast("\\b"));
+
+    EXPECT_FALSE(file.IgnoredFast("c"));
+    EXPECT_FALSE(file.IgnoredFast("c\\"));
+
+    //* IgnoredFull testing
+
+    EXPECT_TRUE(file.IgnoredFull("a"));
+    EXPECT_FALSE(file.IgnoredFull("\\a"));
+
+    EXPECT_FALSE(file.IgnoredFull("b"));
+    EXPECT_TRUE(file.IgnoredFull("\\b"));
+
+    EXPECT_FALSE(file.IgnoredFull("c"));
+    EXPECT_FALSE(file.IgnoredFull("c\\"));
 }
 
 TEST(test_ignore, double_asterisk)
 {
     Ignorelib::IgnoreFile file {"a/**/b", "c/**", "**/d", "**/e/f"};
 
-    EXPECT_TRUE(file.Ignored("a/b"));
-    EXPECT_TRUE(file.Ignored("a/x/b"));
-    EXPECT_TRUE(file.Ignored("a/x/y/b"));
-    EXPECT_FALSE(file.Ignored("ab"));
-    EXPECT_FALSE(file.Ignored("a/xb"));
-    EXPECT_FALSE(file.Ignored("a/x/yb"));
+    //* IgnoredFast testing
 
-    EXPECT_TRUE(file.Ignored("c/something"));
-    EXPECT_FALSE(file.Ignored("c1/something"));
-    EXPECT_FALSE(file.Ignored("c"));
-    EXPECT_FALSE(file.Ignored("c1"));
+    EXPECT_TRUE(file.IgnoredFast("a/b"));
+    EXPECT_TRUE(file.IgnoredFast("a/x/b"));
+    EXPECT_TRUE(file.IgnoredFast("a/x/y/b"));
+    EXPECT_FALSE(file.IgnoredFast("ab"));
+    EXPECT_FALSE(file.IgnoredFast("a/xb"));
+    EXPECT_FALSE(file.IgnoredFast("a/x/yb"));
 
-    EXPECT_TRUE(file.Ignored("d"));
-    EXPECT_FALSE(file.Ignored("d1"));
-    EXPECT_TRUE(file.Ignored("some/path/to/d"));
-    EXPECT_FALSE(file.Ignored("some/path/to/d1"));
+    EXPECT_TRUE(file.IgnoredFast("c/something"));
+    EXPECT_FALSE(file.IgnoredFast("c1/something"));
+    EXPECT_FALSE(file.IgnoredFast("c"));
+    EXPECT_FALSE(file.IgnoredFast("c1"));
 
-    EXPECT_TRUE(file.Ignored("e/f"));
-    EXPECT_FALSE(file.Ignored("e/x/f"));
-    EXPECT_TRUE(file.Ignored("some/path/to/e/f"));
-    EXPECT_FALSE(file.Ignored("some/path/to/e/x/f"));
+    EXPECT_TRUE(file.IgnoredFast("d"));
+    EXPECT_FALSE(file.IgnoredFast("d1"));
+    EXPECT_TRUE(file.IgnoredFast("some/path/to/d"));
+    EXPECT_FALSE(file.IgnoredFast("some/path/to/d1"));
+
+    EXPECT_TRUE(file.IgnoredFast("e/f"));
+    EXPECT_FALSE(file.IgnoredFast("e/x/f"));
+    EXPECT_TRUE(file.IgnoredFast("some/path/to/e/f"));
+    EXPECT_FALSE(file.IgnoredFast("some/path/to/e/x/f"));
+
+    //* IgnoredFull testing
+
+    EXPECT_TRUE(file.IgnoredFull("a/b"));
+    EXPECT_TRUE(file.IgnoredFull("a/x/b"));
+    EXPECT_TRUE(file.IgnoredFull("a/x/y/b"));
+    EXPECT_FALSE(file.IgnoredFull("ab"));
+    EXPECT_FALSE(file.IgnoredFull("a/xb"));
+    EXPECT_FALSE(file.IgnoredFull("a/x/yb"));
+
+    EXPECT_TRUE(file.IgnoredFull("c/something"));
+    EXPECT_FALSE(file.IgnoredFull("c1/something"));
+    EXPECT_FALSE(file.IgnoredFull("c"));
+    EXPECT_FALSE(file.IgnoredFull("c1"));
+
+    EXPECT_TRUE(file.IgnoredFull("d"));
+    EXPECT_FALSE(file.IgnoredFull("d1"));
+    EXPECT_TRUE(file.IgnoredFull("some/path/to/d"));
+    EXPECT_FALSE(file.IgnoredFull("some/path/to/d1"));
+
+    EXPECT_TRUE(file.IgnoredFull("e/f"));
+    EXPECT_FALSE(file.IgnoredFull("e/x/f"));
+    EXPECT_TRUE(file.IgnoredFull("some/path/to/e/f"));
+    EXPECT_FALSE(file.IgnoredFull("some/path/to/e/x/f"));
 }
 
 TEST(test_ignore, re_reserved)
 {
     Ignorelib::IgnoreFile file {"a.b"};
 
-    EXPECT_TRUE(file.Ignored("a.b"));
+    //* IgnoredFast testing
+
+    EXPECT_TRUE(file.IgnoredFast("a.b"));
+
+    //* IgnoredFast IgnoredFull
+
+    EXPECT_TRUE(file.IgnoredFull("a.b"));
 }

@@ -30,16 +30,31 @@
 
 namespace Ignorelib
 {
+    /**
+     * @brief Struct representing a single ignore pattern.
+     */
     struct Pattern
     {
         std::shared_ptr<re2::RE2> Re;
         // cppcheck-suppress unusedStructMember
         bool Negated {false};
-        // cppcheck-suppress unusedStructMember
+
+        /**
+         * @brief Does pattern only apply to top level paths?
+         *
+         * (`/` at beginning or middle, cancelled by `**` `/` at the start of
+         * the pattern)?
+         */
         bool TopLevelOnly {false};
-        // cppcheck-suppress unusedStructMember
+
+        /** @brief Does pattern only apply to directories (ends with `/`)? */
         bool DirsOnly {false};
-        // cppcheck-suppress unusedStructMember
+
+        /**
+         * @brief The number of directory separators in a pattern.
+         *
+         * This is excluding leading or trailing separators.
+         */
         size_t SepCount {0};
     };
 } // namespace Ignorelib
