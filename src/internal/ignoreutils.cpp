@@ -24,11 +24,15 @@
 
 #include <ignorelib/internal/ignoreutils.h>
 
+#include <iostream>
+
 namespace Ignorelib
 {
     std::optional<Pattern> IgnoreUtils::ConvToPattern(std::string_view sv)
     {
         std::string regexStr;
+
+        if (sv == "\\a") { std::cout << "thing\n"; }
 
         Pattern p;
 
@@ -45,12 +49,11 @@ namespace Ignorelib
                 case '\\':
                     if (i + 1 < start.size())
                     {
-                        if (start[i + 1] != '/')
-                        {
+                        if (_escapes.find(start[i + 1]) !=
+                            std::string_view::npos)
                             regexStr.push_back(start[i]);
-                            ++i;
-                            regexStr.push_back(start[i]);
-                        }
+                        ++i;
+                        regexStr.push_back(start[i]);
                     }
                     else
                         return std::nullopt;
@@ -88,9 +91,11 @@ namespace Ignorelib
             }
         }
 
+        if (sv == "\\a") { std::cout << regexStr << '\n'; }
+
         if (anyLevel) p.TopLevelOnly = false;
 
-        p.Re = std::regex(std::move(regexStr));
+        p.Re = std::make_shared<re2::RE2>(regexStr);
         return p;
     }
 
@@ -160,7 +165,7 @@ namespace Ignorelib
 
         if (anyLevel) p.P.TopLevelOnly = false;
 
-        p.P.Re = std::regex(regexStr);
+        p.P.Re = std::make_shared<re2::RE2>(regexStr);
         p.Str  = std::move(regexStr);
 
         return p;

@@ -56,7 +56,7 @@ namespace Ignorelib
 
                 if (matches(std::move(info))) return ignored;
             }
-            else if (std::regex_match(path.begin(), path.end(), pattern.Re) &&
+            else if (re2::RE2::FullMatch(path, *pattern.Re) &&
                      (type == FileType::directory || !pattern.DirsOnly))
             {
                 return !pattern.Negated;
@@ -82,9 +82,8 @@ namespace Ignorelib
 
                         if (matches(std::move(substrInfo))) return ignored;
                     }
-                    else if (std::regex_match(
-                                 path.substr(separators[i] + 1).begin(),
-                                 path.end(), pattern.Re) &&
+                    else if (re2::RE2::FullMatch(path.substr(separators[i] + 1),
+                                                 *pattern.Re) &&
                              (type == FileType::directory || !pattern.DirsOnly))
                     {
                         return !pattern.Negated;
@@ -122,14 +121,14 @@ namespace Ignorelib
 
     bool IgnoreFile::matches(MatchesInfo&& info)
     {
-        if (std::regex_match(info.First.begin(), info.First.end(), info.Re) &&
+        if (re2::RE2::FullMatch(info.First, *info.Re) &&
             info.First != info.Full)
         {
             info.Out = info.ToOutput;
             return true;
         }
 
-        if (std::regex_match(info.Full.begin(), info.Full.end(), info.Re) &&
+        if (re2::RE2::FullMatch(info.Full, *info.Re) &&
             (info.File == FileType::directory || !info.DirsOnly))
         {
             info.Out = info.ToOutput;

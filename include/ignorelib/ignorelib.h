@@ -27,6 +27,8 @@
 #include <ignorelib/internal/ignoreutils.h>
 #include <ignorelib/pattern.h>
 
+#include <re2/re2.h>
+
 #include <filesystem>
 #include <fstream>
 #include <optional>
@@ -64,7 +66,9 @@ namespace Ignorelib
         template<std::ranges::input_range R>
             requires(
                 std::convertible_to<std::ranges::range_value_t<R>, Pattern> &&
-                !std::same_as<std::remove_cvref_t<R>, IgnoreFile>)
+                !std::same_as<std::remove_cvref_t<R>, IgnoreFile> &&
+                !std::convertible_to<std::ranges::range_value_t<R>,
+                                     std::string_view>)
         explicit inline IgnoreFile(const R& patterns) :
             _patterns {patterns.begin(), patterns.end()}
         {}
@@ -140,8 +144,8 @@ namespace Ignorelib
             // cppcheck-suppress unusedStructMember
             std::string_view First;
             // cppcheck-suppress unusedStructMember
-            std::string_view  Full;
-            const std::regex& Re;
+            std::string_view          Full;
+            std::shared_ptr<re2::RE2> Re;
             // cppcheck-suppress unusedStructMember
             const bool& ToOutput;
             // cppcheck-suppress unusedStructMember
@@ -157,7 +161,7 @@ namespace Ignorelib
         {
             if (s.empty() || s.front() == '#') return;
 
-            const auto result = IgnoreUtils::ConvToPattern(s);
+            auto result = IgnoreUtils::ConvToPattern(s);
             if (result) _patterns.push_back(std::move(*result));
         }
 

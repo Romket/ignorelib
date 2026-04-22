@@ -24,7 +24,9 @@
 
 #pragma once
 
-#include <regex>
+#include <re2/re2.h>
+
+#include <memory>
 
 #ifdef IGNORELIB_TESTS
 #include <string>
@@ -34,7 +36,7 @@ namespace Ignorelib
 {
     struct Pattern
     {
-        std::regex Re;
+        std::shared_ptr<re2::RE2> Re;
         // cppcheck-suppress unusedStructMember
         bool Negated {false};
         // cppcheck-suppress unusedStructMember
@@ -48,6 +50,7 @@ namespace Ignorelib
 #ifdef IGNORELIB_TESTS
     struct TestPattern
     {
+        // cppcheck-suppress unusedStructMember
         Pattern P;
         // cppcheck-suppress unusedStructMember
         std::string Str;
