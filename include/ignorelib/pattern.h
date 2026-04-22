@@ -28,10 +28,6 @@
 
 #include <memory>
 
-#ifdef IGNORELIB_TESTS
-#include <string>
-#endif
-
 namespace Ignorelib
 {
     struct Pattern
@@ -46,14 +42,4 @@ namespace Ignorelib
         // cppcheck-suppress unusedStructMember
         size_t SepCount {0};
     };
-
-#ifdef IGNORELIB_TESTS
-    struct TestPattern
-    {
-        // cppcheck-suppress unusedStructMember
-        Pattern P;
-        // cppcheck-suppress unusedStructMember
-        std::string Str;
-    };
-#endif
 } // namespace Ignorelib
