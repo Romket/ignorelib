@@ -123,11 +123,11 @@ namespace Ignorelib
         bool ignored = false;
 
         const std::string& pathStr {path.string()};
+        SeparatorInfo      sepInfo = getSeparatorInfo(pathStr);
 
         for (const Pattern& pattern : _patterns)
         {
-            SeparatorInfo sepInfo = getSeparatorInfo(pathStr);
-            size_t        loopTo  = getLoopInfo(sepInfo, pattern);
+            size_t loopTo = getLoopInfo(sepInfo, pattern);
 
             for (size_t i {0}; i < loopTo; ++i)
             {
