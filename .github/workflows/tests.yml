@@ -19,7 +19,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get upgrade
-        sudo apt-get install abseil-cpp
+        sudo apt-get install abseil
 
     - name: Configure project
       run: cmake --preset dev-linux
