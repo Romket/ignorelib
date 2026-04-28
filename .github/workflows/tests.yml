@@ -19,7 +19,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get upgrade
-        sudo apt-get install abseil
+        sudo apt-get install libabsl-dev
 
     - name: Configure project
       run: cmake --preset dev-linux

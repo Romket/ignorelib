@@ -27,7 +27,7 @@ jobs:
 
       - name: Download abseil
         run: |
-          sudo apt-get install abseil
+          sudo apt-get install libabsl-dev
 
       - name: Install Clang-Format 22
         run: |
