@@ -24,15 +24,11 @@
 
 #include <ignorelib/internal/ignoreutils.h>
 
-#include <iostream>
-
 namespace Ignorelib
 {
     std::optional<Pattern> IgnoreUtils::ConvToPattern(std::string_view sv)
     {
         std::string regexStr;
-
-        if (sv == "\\a") { std::cout << "thing\n"; }
 
         Pattern p;
 
@@ -49,6 +45,8 @@ namespace Ignorelib
                 case '\\':
                     if (i + 1 < start.size())
                     {
+                        // re2 has certain reserved escape codes, check against
+                        // _escapes to see what needs to be escaped.
                         if (_escapes.find(start[i + 1]) !=
                             std::string_view::npos)
                             regexStr.push_back(start[i]);
@@ -56,25 +54,32 @@ namespace Ignorelib
                         regexStr.push_back(start[i]);
                     }
                     else
+                        // option for invalid pattern
                         return std::nullopt;
                     break;
                 case '*':
                     if (i + 1 == start.size())
+                        // any characters if at the end of the pattern
                         regexStr += ".*";
                     else
+                        // any characters except directory separators
                         regexStr += "[^\\/\\\\]*";
                     break;
                 case '.': regexStr += "\\."; break;
                 case '/':
                     if (i + 3 < start.size() && start.substr(i, 4) == "/**/")
                     {
+                        // any number of directories
                         regexStr += "(?:\\/.*\\/|\\/)";
                         i += 3;
                     }
                     else if (i + 3 == start.size() &&
                              start.substr(i, 3) == "/**")
+                        // any contained path, same as '/*'
                         regexStr += "\\/.*";
                     else if (i + 1 == start.size())
+                        // pattern ends with '/', indicates pattern only matches
+                        // directories
                         p.DirsOnly = true;
                     else
                     {
@@ -90,8 +95,6 @@ namespace Ignorelib
                 default: regexStr.push_back(start[i]);
             }
         }
-
-        if (sv == "\\a") { std::cout << regexStr << '\n'; }
 
         if (anyLevel) p.TopLevelOnly = false;
 

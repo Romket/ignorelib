@@ -352,25 +352,36 @@ namespace Ignorelib
             bool EarlyReturnMet = false;
         };
 
+        struct SeparatorInfo
+        {
+            std::vector<size_t> Separators {};
+            std::vector<size_t> Found {};
+        };
+
     private:
         void addPattern(std::string_view s)
         {
             if (s.empty() || s.front() == '#') return;
 
             auto result = IgnoreUtils::ConvToPattern(s);
-            if (result) _patterns.push_back(std::move(*result));
+            if (!result) return;
+
+            if (result->SepCount > _mostSeparators)
+                _mostSeparators = result->SepCount;
+
+            _patterns.push_back(std::move(*result));
         }
 
         bool ignoredUtil(const fs::path& path,
                          fs::file_type   type,
                          bool            isFullMatch) const;
 
-        std::vector<size_t> findSeparators(std::string_view sv) const;
+        static std::vector<size_t> findSeparators(std::string_view sv);
 
-        Matched matches(MatchesInfo&& info) const;
+        static Matched matches(MatchesInfo&& info);
 
         template<typename Fn>
-        void walk(const fs::path& dir, Fn&& f) const
+        static void walk(const fs::path& dir, Fn&& f)
         {
             if (!fs::is_directory(dir)) return;
 
@@ -388,11 +399,14 @@ namespace Ignorelib
             }
         }
 
-        size_t getLoopInfo(std::vector<size_t>& separators,
-                           const Pattern&       pattern,
-                           std::string_view     pathStr) const;
+        SeparatorInfo getSeparatorInfo(std::string_view pathStr) const;
+
+        static size_t getLoopInfo(const SeparatorInfo& sepInfo,
+                                  const Pattern&       pattern);
 
     private:
         std::vector<Pattern> _patterns;
+
+        size_t _mostSeparators {0};
     };
 } // namespace Ignorelib
