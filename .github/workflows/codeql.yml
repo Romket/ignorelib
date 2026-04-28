@@ -59,6 +59,12 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Download abseil
+      run: |
+        sudo apt-get update
+        sudo apt-get upgrade
+        sudo apt-get install abseil-cpp
+
     # Add any setup steps before running the `github/codeql-action/init` action.
     # This includes steps like installing compilers or runtimes (`actions/setup-node`
     # or others). This is typically only required for manual builds.

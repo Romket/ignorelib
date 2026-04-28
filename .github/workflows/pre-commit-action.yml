@@ -23,6 +23,11 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
+          sudo apt-get upgrade
+
+      - name: Download abseil
+        run: |
+          sudo apt-get install abseil-cpp
 
       - name: Install Clang-Format 22
         run: |
