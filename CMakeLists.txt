@@ -51,7 +51,8 @@ add_library(ignorelib::ignorelib ALIAS ignorelib)
 
 include(FetchContent)
 
-set(BUILD_SHARED_LIBS ON)
+set(BUILD_SHARED_LIBS OFF)
+set(ABSL_ENABLE_INSTALL ON)
 
 find_package(absl QUIET)
 if(NOT absl_FOUND)
