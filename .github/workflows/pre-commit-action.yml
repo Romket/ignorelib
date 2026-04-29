@@ -23,11 +23,6 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get upgrade
-
-      - name: Download abseil
-        run: |
-          sudo apt-get install libabsl-dev
 
       - name: Install Clang-Format 22
         run: |
