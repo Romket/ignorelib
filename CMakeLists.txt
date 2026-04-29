@@ -49,9 +49,29 @@ add_library(ignorelib::ignorelib ALIAS ignorelib)
 # ignorelib dependencies
 #----------------------------------------------------------------------------------------------------------------------
 
-set(IGNORELIB_LIBRARIES_DIR ${CMAKE_SOURCE_DIR}/lib)
+include(FetchContent)
 
-add_subdirectory(${IGNORELIB_LIBRARIES_DIR}/re2)
+set(BUILD_SHARED_LIBS ON)
+
+find_package(absl QUIET)
+if(NOT absl_FOUND)
+    FetchContent_Declare(
+        absl
+        GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
+        GIT_TAG 20260107.1
+    )
+    FetchContent_MakeAvailable(absl)
+endif()
+
+find_package(re2 QUIET)
+if(NOT re2_FOUND)
+    FetchContent_Declare(
+        re2
+        GIT_REPOSITORY https://github.com/google/re2.git
+        GIT_TAG 2025-11-05
+    )
+    FetchContent_MakeAvailable(re2)
+endif()
 
 target_link_libraries(ignorelib PUBLIC re2::re2)
 

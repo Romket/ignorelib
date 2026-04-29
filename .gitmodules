@@ -1,6 +1,0 @@
-[submodule "lib/re2"]
-	path = lib/re2
-	url = https://github.com/google/re2.git
-[submodule "lib/abseil-cpp"]
-	path = lib/abseil-cpp
-	url = https://github.com/abseil/abseil-cpp.git
