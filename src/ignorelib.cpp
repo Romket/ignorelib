@@ -152,7 +152,7 @@ namespace Ignorelib
     std::vector<size_t> IgnoreFile::findSeparators(std::string_view sv)
     {
         std::vector<size_t> separators;
-        separators.reserve(sv.size() - 1);
+        separators.reserve(sv.size() >= 1 ? sv.size() - 1 : 0);
 
         for (auto [i, c] : std::views::enumerate(sv))
         {
