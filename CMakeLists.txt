@@ -52,9 +52,9 @@ add_library(ignorelib::ignorelib ALIAS ignorelib)
 include(FetchContent)
 
 set(BUILD_SHARED_LIBS OFF)
+set(BUILD_TESTING OFF)
 
 set(ABSL_ENABLE_INSTALL ON)
-set(ABSL_BUILD_TESTING OFF)
 
 set(RE2_BUILD_TESTING OFF)
 
