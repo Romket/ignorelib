@@ -52,6 +52,7 @@ add_library(ignorelib::ignorelib ALIAS ignorelib)
 include(FetchContent)
 
 set(ABSL_ENABLE_INSTALL ON)
+set(CMAKE_SKIP_INSTALL_RULES ON)
 
 find_package(absl QUIET)
 if(NOT absl_FOUND)
@@ -62,6 +63,8 @@ if(NOT absl_FOUND)
     )
     FetchContent_MakeAvailable(absl)
 endif()
+
+set(CMAKE_SKIP_INSTALL_RULES OFF)
 
 find_package(re2 QUIET)
 if(NOT re2_FOUND)
