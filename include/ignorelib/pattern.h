@@ -35,8 +35,14 @@ namespace Ignorelib
      */
     struct Pattern
     {
+        /**
+         * @brief The regex pattern.
+         */
         std::shared_ptr<re2::RE2> Re;
-        // cppcheck-suppress unusedStructMember
+
+        /**
+         * @brief Is the pattern negated (starts with `!`)
+         */
         bool Negated {false};
 
         /**
