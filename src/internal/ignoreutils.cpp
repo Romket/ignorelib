@@ -24,6 +24,8 @@
 
 #include <ignorelib/internal/ignoreutils.h>
 
+#include <re2/re2.h>
+
 namespace Ignorelib
 {
     std::optional<Pattern> IgnoreUtils::ConvToPattern(std::string_view sv)

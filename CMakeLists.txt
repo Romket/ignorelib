@@ -77,7 +77,7 @@ if(NOT re2_FOUND)
 endif()
 
 # TODO: link as private interface
-target_link_libraries(ignorelib PUBLIC re2::re2)
+target_link_libraries(ignorelib PRIVATE re2::re2)
 
 #----------------------------------------------------------------------------------------------------------------------
 # ignorelib sources
@@ -96,6 +96,7 @@ set(sources
 #   include/ignorelib/export.h
     include/ignorelib/ignorelib.h
     src/ignorelib.cpp
+    src/pattern.cpp
     src/internal/ignoreutils.cpp)
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${sources})
 

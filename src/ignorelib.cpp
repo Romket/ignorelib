@@ -24,6 +24,8 @@
 
 #include <ignorelib/ignorelib.h>
 
+#include <re2/re2.h>
+
 #include <algorithm>
 #include <fstream>
 

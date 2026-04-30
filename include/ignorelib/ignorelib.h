@@ -27,8 +27,6 @@
 #include <ignorelib/internal/ignoreutils.h>
 #include <ignorelib/pattern.h>
 
-#include <re2/re2.h>
-
 #include <filesystem>
 #include <optional>
 #include <ranges>

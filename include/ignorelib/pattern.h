@@ -24,9 +24,13 @@
 
 #pragma once
 
-#include <re2/re2.h>
-
 #include <memory>
+
+/// re2::RE2 forward declaration
+namespace re2
+{
+    class RE2;
+}
 
 namespace Ignorelib
 {
@@ -62,5 +66,12 @@ namespace Ignorelib
          * This is excluding leading or trailing separators.
          */
         size_t SepCount {0};
+
+        /**
+         * @brief Destroy the Pattern object
+         *
+         * Must be defined in a source file so re2::RE2 full type is found
+         */
+        ~Pattern();
     };
 } // namespace Ignorelib
