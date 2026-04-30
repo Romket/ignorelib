@@ -68,6 +68,7 @@ target_sources(ignorelib-tests PRIVATE ${sources})
 target_link_libraries(ignorelib-tests
     PRIVATE
         ignorelib::ignorelib
+        re2::re2
         gtest_main)
 
 if(NOT is_top_level)
