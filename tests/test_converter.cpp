@@ -33,11 +33,11 @@ TEST(test_convert, convert)
 {
     for (int i {2}; i < numLines; ++i)
     {
-        auto result = Ignorelib::IgnoreUtils::ConvToTestPattern(lines[i]);
+        auto result = Ignorelib::IgnoreUtils::ConvToPattern(lines[i]);
 
         ASSERT_TRUE(result);
 
-        EXPECT_EQ(patterns[i - 2], result->Str);
-        EXPECT_EQ(patternNegated[i - 2], result->P.Negated);
+        EXPECT_EQ(patterns[i - 2], result->Re->pattern());
+        EXPECT_EQ(patternNegated[i - 2], result->Negated);
     }
 }

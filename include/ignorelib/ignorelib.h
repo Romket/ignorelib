@@ -27,6 +27,8 @@
 #include <ignorelib/internal/ignoreutils.h>
 #include <ignorelib/pattern.h>
 
+#include <re2/re2.h>
+
 #include <filesystem>
 #include <optional>
 #include <ranges>
@@ -100,8 +102,18 @@ namespace Ignorelib
         template<std::ranges::input_range R>
             requires(
                 std::convertible_to<std::ranges::range_value_t<R>, Pattern> &&
+                !std::same_as<std::remove_cvref_t<R>, IgnoreFile> &&
+                !std::convertible_to<std::ranges::range_value_t<R>,
+                                     std::string_view>)
+        explicit inline IgnoreFile(const R& patterns) :
+            _patterns {patterns.begin(), patterns.end()}
+        {}
+
+        template<std::ranges::input_range R>
+            requires(
+                std::convertible_to<std::ranges::range_value_t<R>, Pattern> &&
                 !std::same_as<std::remove_cvref_t<R>, IgnoreFile>)
-        explicit IgnoreFile(R&& patterns) :
+        explicit inline IgnoreFile(R&& patterns) :
             _patterns {std::move(patterns.begin()), std::move(patterns.end())}
         {}
 
@@ -327,11 +339,11 @@ namespace Ignorelib
     private:
         struct MatchesInfo
         {
-            std::string       First;
-            std::string       Full;
-            const std::regex& Re;
-            fs::file_type     File;
-            bool              DirsOnly;
+            std::string               First;
+            std::string               Full;
+            std::shared_ptr<re2::RE2> Re;
+            fs::file_type             File;
+            bool                      DirsOnly;
         };
 
         struct Matched
@@ -340,25 +352,36 @@ namespace Ignorelib
             bool EarlyReturnMet = false;
         };
 
+        struct SeparatorInfo
+        {
+            std::vector<size_t> Separators {};
+            std::vector<size_t> Found {};
+        };
+
     private:
         void addPattern(std::string_view s)
         {
             if (s.empty() || s.front() == '#') return;
 
-            const auto result = IgnoreUtils::ConvToPattern(s);
-            if (result) _patterns.push_back(std::move(*result));
+            auto result = IgnoreUtils::ConvToPattern(s);
+            if (!result) return;
+
+            if (result->SepCount > _mostSeparators)
+                _mostSeparators = result->SepCount;
+
+            _patterns.push_back(std::move(*result));
         }
 
         bool ignoredUtil(const fs::path& path,
                          fs::file_type   type,
                          bool            isFullMatch) const;
 
-        std::vector<size_t> findSeparators(std::string_view sv) const;
+        static std::vector<size_t> findSeparators(std::string_view sv);
 
-        Matched matches(MatchesInfo&& info) const;
+        static Matched matches(MatchesInfo&& info);
 
         template<typename Fn>
-        void walk(const fs::path& dir, Fn&& f) const
+        static void walk(const fs::path& dir, Fn&& f)
         {
             if (!fs::is_directory(dir)) return;
 
@@ -376,11 +399,14 @@ namespace Ignorelib
             }
         }
 
-        size_t getLoopInfo(std::vector<size_t>& separators,
-                           const Pattern&       pattern,
-                           std::string_view     pathStr) const;
+        SeparatorInfo getSeparatorInfo(std::string_view pathStr) const;
+
+        static size_t getLoopInfo(const SeparatorInfo& sepInfo,
+                                  const Pattern&       pattern);
 
     private:
         std::vector<Pattern> _patterns;
+
+        size_t _mostSeparators {0};
     };
 } // namespace Ignorelib

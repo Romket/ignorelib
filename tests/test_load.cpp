@@ -27,8 +27,11 @@
 #include <ignorelib/ignorelib.h>
 #include <ignorelib/internal/ignoreutils.h>
 
+#include <re2/re2.h>
+
 #include <array>
 #include <fstream>
+#include <memory>
 #include <vector>
 
 #include "test_load_file_constants.h"
@@ -48,21 +51,23 @@ TEST(test_load, pattern_list)
 {
     // Test std::vector&& constructor
     std::vector<Ignorelib::Pattern> patternMap;
-    for (int i = 0; i < numPatterns; ++i)
+    for (size_t i = 0; i < numPatterns; ++i)
     {
         patternMap.push_back(
-            {std::regex(std::string(patterns[i])), patternNegated[i]});
+            Ignorelib::Pattern {.Re = std::make_shared<re2::RE2>(patterns[i]),
+                                .Negated = patternNegated[i]});
     }
 
-    Ignorelib::IgnoreFile vecFile {std::move(patternMap)};
+    Ignorelib::IgnoreFile vecFile {std::move(patterns)};
     EXPECT_EQ(numPatterns, vecFile.GetPatterns().size());
 
     // Test template range constructors
     std::array<Ignorelib::Pattern, numPatterns> patternArray;
     for (size_t i {0}; i < numPatterns; ++i)
     {
-        patternArray[i] = {std::regex(std::string(patterns[i])),
-                           patternNegated[i]};
+        patternArray[i] = {
+            Ignorelib::Pattern {.Re = std::make_shared<re2::RE2>(patterns[i]),
+                                .Negated = patternNegated[i]}};
     }
 
     Ignorelib::IgnoreFile arrFile {patternArray};
@@ -73,7 +78,8 @@ TEST(test_load, pattern_list)
 
     // Test initializer list constructor
     Ignorelib::IgnoreFile listFile {
-        {std::regex(std::string {patterns[0]}), patternNegated[0]}};
+        {.Re      = std::make_shared<re2::RE2>(patterns[0]),
+         .Negated = patternNegated[0]}};
     EXPECT_EQ(1, listFile.GetPatterns().size());
 }
 

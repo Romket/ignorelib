@@ -49,7 +49,35 @@ add_library(ignorelib::ignorelib ALIAS ignorelib)
 # ignorelib dependencies
 #----------------------------------------------------------------------------------------------------------------------
 
-# Search for your dependencies here
+include(FetchContent)
+
+set(ABSL_ENABLE_INSTALL ON)
+set(CMAKE_SKIP_INSTALL_RULES ON)
+
+find_package(absl QUIET)
+if(NOT absl_FOUND)
+    FetchContent_Declare(
+        absl
+        GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
+        GIT_TAG 20260107.1
+    )
+    FetchContent_MakeAvailable(absl)
+endif()
+
+set(CMAKE_SKIP_INSTALL_RULES OFF)
+
+find_package(re2 QUIET)
+if(NOT re2_FOUND)
+    FetchContent_Declare(
+        re2
+        GIT_REPOSITORY https://github.com/google/re2.git
+        GIT_TAG 2025-11-05
+    )
+    FetchContent_MakeAvailable(re2)
+endif()
+
+# TODO: link as private interface
+target_link_libraries(ignorelib PUBLIC re2::re2)
 
 #----------------------------------------------------------------------------------------------------------------------
 # ignorelib sources

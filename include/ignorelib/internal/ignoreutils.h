@@ -36,9 +36,8 @@ namespace Ignorelib
     public:
         static std::optional<Pattern> ConvToPattern(std::string_view sv);
 
-#ifdef IGNORELIB_TESTS
-        static std::optional<TestPattern>
-        ConvToTestPattern(std::string_view sv);
-#endif
+    private:
+        // cppcheck-suppress unusedStructMember
+        constexpr static std::string_view _escapes = "\\!#?*[ ";
     };
 } // namespace Ignorelib

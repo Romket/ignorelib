@@ -45,33 +45,41 @@ namespace Ignorelib
                 case '\\':
                     if (i + 1 < start.size())
                     {
-                        if (start[i + 1] != '/')
-                        {
+                        // re2 has certain reserved escape codes, check against
+                        // _escapes to see what needs to be escaped.
+                        if (_escapes.find(start[i + 1]) !=
+                            std::string_view::npos)
                             regexStr.push_back(start[i]);
-                            ++i;
-                            regexStr.push_back(start[i]);
-                        }
+                        ++i;
+                        regexStr.push_back(start[i]);
                     }
                     else
+                        // option for invalid pattern
                         return std::nullopt;
                     break;
                 case '*':
                     if (i + 1 == start.size())
+                        // any characters if at the end of the pattern
                         regexStr += ".*";
                     else
+                        // any characters except directory separators
                         regexStr += "[^\\/\\\\]*";
                     break;
                 case '.': regexStr += "\\."; break;
                 case '/':
                     if (i + 3 < start.size() && start.substr(i, 4) == "/**/")
                     {
+                        // any number of directories
                         regexStr += "(?:\\/.*\\/|\\/)";
                         i += 3;
                     }
                     else if (i + 3 == start.size() &&
                              start.substr(i, 3) == "/**")
+                        // any contained path, same as '/*'
                         regexStr += "\\/.*";
                     else if (i + 1 == start.size())
+                        // pattern ends with '/', indicates pattern only matches
+                        // directories
                         p.DirsOnly = true;
                     else
                     {
@@ -90,80 +98,7 @@ namespace Ignorelib
 
         if (anyLevel) p.TopLevelOnly = false;
 
-        p.Re = std::regex(std::move(regexStr));
+        p.Re = std::make_shared<re2::RE2>(regexStr);
         return p;
     }
-
-#ifdef IGNORELIB_TESTS
-    std::optional<TestPattern>
-    IgnoreUtils::ConvToTestPattern(std::string_view sv)
-    {
-        std::string regexStr;
-
-        TestPattern p;
-
-        p.P.Negated                    = sv.starts_with('!');
-        std::string_view negateRemoved = sv.substr(p.P.Negated);
-
-        bool             anyLevel = negateRemoved.starts_with("**/");
-        std::string_view start    = negateRemoved.substr(3 * anyLevel);
-
-        for (size_t i {0}; i < start.size(); ++i)
-        {
-            switch (start[i])
-            {
-                case '\\':
-                    if (i + 1 < start.size())
-                    {
-                        if (start[i + 1] != '/')
-                        {
-                            regexStr.push_back(start[i]);
-                            ++i;
-                            regexStr.push_back(start[i]);
-                        }
-                    }
-                    else
-                        return std::nullopt;
-                    break;
-                case '*':
-                    if (i + 1 == start.size())
-                        regexStr += ".*";
-                    else
-                        regexStr += "[^\\/\\\\]*";
-                    break;
-                case '.': regexStr += "\\."; break;
-                case '/':
-                    if (i + 3 < start.size() && start.substr(i, 4) == "/**/")
-                    {
-                        regexStr += "(?:\\/.*\\/|\\/)";
-                        i += 3;
-                    }
-                    else if (i + 3 == start.size() &&
-                             start.substr(i, 3) == "/**")
-                        regexStr += "\\/.*";
-                    else if (i + 1 == start.size())
-                        p.P.DirsOnly = true;
-                    else
-                    {
-                        p.P.TopLevelOnly = true;
-                        if (i > 0)
-                        {
-                            regexStr += "\\/";
-                            ++p.P.SepCount;
-                        }
-                    }
-                    break;
-                case '?': regexStr += "[^\\/]"; break;
-                default: regexStr.push_back(start[i]);
-            }
-        }
-
-        if (anyLevel) p.P.TopLevelOnly = false;
-
-        p.P.Re = std::regex(regexStr);
-        p.Str  = std::move(regexStr);
-
-        return p;
-    }
-#endif
 } // namespace Ignorelib

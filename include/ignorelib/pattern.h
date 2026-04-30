@@ -24,11 +24,9 @@
 
 #pragma once
 
-#include <regex>
+#include <re2/re2.h>
 
-#ifdef IGNORELIB_TESTS
-#include <string>
-#endif
+#include <memory>
 
 namespace Ignorelib
 {
@@ -37,10 +35,14 @@ namespace Ignorelib
      */
     struct Pattern
     {
-        /** @brief A regex string for pattern matching. */
-        std::regex Re;
+        /**
+         * @brief The regex pattern.
+         */
+        std::shared_ptr<re2::RE2> Re;
 
-        /** @brief Is pattern negated (starts with `!`)? */
+        /**
+         * @brief Is the pattern negated (starts with `!`)
+         */
         bool Negated {false};
 
         /**
@@ -61,12 +63,4 @@ namespace Ignorelib
          */
         size_t SepCount {0};
     };
-
-#ifdef IGNORELIB_TESTS
-    struct TestPattern
-    {
-        Pattern     P;
-        std::string Str;
-    };
-#endif
 } // namespace Ignorelib
