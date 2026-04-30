@@ -24,6 +24,8 @@
 
 #include <ignorelib/ignorelib.h>
 
+#include <ignorelib/internal/ignoreutils.h>
+
 #include <re2/re2.h>
 
 #include <algorithm>
@@ -46,25 +48,26 @@ namespace Ignorelib
     {
         std::vector<fs::path> ignored {};
 
-        walk(dir,
-             // loops over contained paths if directory is matched
-             [&](auto& it, const fs::path& path, const fs::file_type& type) {
-                 if (IgnoredFull(path))
-                 {
-                     if (type == fs::file_type::directory)
-                     {
-                         it.disable_recursion_pending();
-                         for (const auto& entry :
-                              fs::recursive_directory_iterator {path})
-                         {
-                             if (!fs::is_directory(entry))
-                                 ignored.push_back(entry.path());
-                         }
-                     }
-                     else
-                         ignored.push_back(path);
-                 }
-             });
+        IgnoreUtils::walk(
+            dir,
+            // loops over contained paths if directory is matched
+            [&](auto& it, const fs::path& path, const fs::file_type& type) {
+                if (IgnoredFull(path))
+                {
+                    if (type == fs::file_type::directory)
+                    {
+                        it.disable_recursion_pending();
+                        for (const auto& entry :
+                             fs::recursive_directory_iterator {path})
+                        {
+                            if (!fs::is_directory(entry))
+                                ignored.push_back(entry.path());
+                        }
+                    }
+                    else
+                        ignored.push_back(path);
+                }
+            });
 
         return ignored;
     }
@@ -73,10 +76,11 @@ namespace Ignorelib
     {
         std::vector<fs::path> ignored {};
 
-        walk(dir, [&](const fs::path& path, const fs::file_type& type) {
-            if (IgnoredFull(path) && type == fs::file_type::regular)
-                ignored.push_back(path);
-        });
+        IgnoreUtils::walk(
+            dir, [&](const fs::path& path, const fs::file_type& type) {
+                if (IgnoredFull(path) && type == fs::file_type::regular)
+                    ignored.push_back(path);
+            });
 
         return ignored;
     }
@@ -86,19 +90,20 @@ namespace Ignorelib
     {
         std::vector<fs::path> included {};
 
-        walk(dir,
-             // excludes looping over matching containing directories
-             [&](auto& it, const fs::path& path, const fs::file_type& type) {
-                 if (IgnoredFull(path) && type == fs::file_type::directory)
-                 {
-                     it.disable_recursion_pending();
-                     return;
-                 }
+        IgnoreUtils::walk(
+            dir,
+            // excludes looping over matching containing directories
+            [&](auto& it, const fs::path& path, const fs::file_type& type) {
+                if (IgnoredFull(path) && type == fs::file_type::directory)
+                {
+                    it.disable_recursion_pending();
+                    return;
+                }
 
-                 if (!IgnoredFull(path) &&
-                     it->status().type() == fs::file_type::regular)
-                     included.push_back(path);
-             });
+                if (!IgnoredFull(path) &&
+                    it->status().type() == fs::file_type::regular)
+                    included.push_back(path);
+            });
 
         return included;
     }
@@ -108,12 +113,26 @@ namespace Ignorelib
     {
         std::vector<fs::path> ignored {};
 
-        walk(dir, [&](const fs::path& path, const fs::file_type& type) {
-            if (!IgnoredFull(path) && type == fs::file_type::regular)
-                ignored.push_back(path);
-        });
+        IgnoreUtils::walk(
+            dir, [&](const fs::path& path, const fs::file_type& type) {
+                if (!IgnoredFull(path) && type == fs::file_type::regular)
+                    ignored.push_back(path);
+            });
 
         return ignored;
+    }
+
+    void IgnoreFile::addPattern(std::string_view s)
+    {
+        if (s.empty() || s.front() == '#') return;
+
+        auto result = IgnoreUtils::convToPattern(s);
+        if (!result) return;
+
+        if (result->SepCount > _mostSeparators)
+            _mostSeparators = result->SepCount;
+
+        _patterns.push_back(std::move(*result));
     }
 
     bool IgnoreFile::ignoredUtil(const fs::path& path,
@@ -141,7 +160,7 @@ namespace Ignorelib
                     pathStr.substr(sepInfo.Separators[i]), pattern.Re, type,
                     pattern.DirsOnly};
 
-                Matched result = matches(std::move(info));
+                Matched result = IgnoreUtils::matches(std::move(info));
 
                 if (result.IsMatched) ignored = !pattern.Negated;
                 if (!isFullMatch && result.EarlyReturnMet) return ignored;
@@ -149,41 +168,6 @@ namespace Ignorelib
         }
 
         return ignored;
-    }
-
-    std::vector<size_t> IgnoreFile::findSeparators(std::string_view sv)
-    {
-        std::vector<size_t> separators;
-        separators.reserve(sv.size() >= 1 ? sv.size() - 1 : 0);
-
-        for (auto [i, c] : std::views::enumerate(sv))
-        {
-            if (c == '/') separators.push_back(static_cast<size_t>(i + 1));
-        }
-
-        return separators;
-    }
-
-    IgnoreFile::Matched IgnoreFile::matches(MatchesInfo&& info)
-    {
-        Matched result {};
-
-        if (info.First != info.Full &&
-            re2::RE2::FullMatch(info.First, *info.Re))
-        {
-            result.IsMatched      = true;
-            result.EarlyReturnMet = true;
-
-            return result;
-        }
-
-        if (re2::RE2::FullMatch(info.Full, *info.Re) &&
-            (info.File == fs::file_type::directory || !info.DirsOnly))
-        {
-            result.IsMatched = true;
-        }
-
-        return result;
     }
 
     IgnoreFile::SeparatorInfo
@@ -194,7 +178,7 @@ namespace Ignorelib
                 pathStr.size() + _mostSeparators + 1, pathStr.size() + 1)};
 
         sepInfo.Separators[0] = 0;
-        sepInfo.Found         = findSeparators(pathStr);
+        sepInfo.Found         = IgnoreUtils::findSeparators(pathStr);
 
         std::ranges::copy(sepInfo.Found, sepInfo.Separators.begin() + 1);
 

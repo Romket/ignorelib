@@ -28,7 +28,7 @@
 
 namespace Ignorelib
 {
-    std::optional<Pattern> IgnoreUtils::ConvToPattern(std::string_view sv)
+    std::optional<Pattern> IgnoreUtils::convToPattern(std::string_view sv)
     {
         std::string regexStr;
 
@@ -102,5 +102,40 @@ namespace Ignorelib
 
         p.Re = std::make_shared<re2::RE2>(regexStr);
         return p;
+    }
+
+    std::vector<size_t> IgnoreUtils::findSeparators(std::string_view sv)
+    {
+        std::vector<size_t> separators;
+        separators.reserve(sv.size() >= 1 ? sv.size() - 1 : 0);
+
+        for (auto [i, c] : std::views::enumerate(sv))
+        {
+            if (c == '/') separators.push_back(static_cast<size_t>(i + 1));
+        }
+
+        return separators;
+    }
+
+    IgnoreFile::Matched IgnoreUtils::matches(IgnoreFile::MatchesInfo&& info)
+    {
+        IgnoreFile::Matched result {};
+
+        if (info.First != info.Full &&
+            re2::RE2::FullMatch(info.First, *info.Re))
+        {
+            result.IsMatched      = true;
+            result.EarlyReturnMet = true;
+
+            return result;
+        }
+
+        if (re2::RE2::FullMatch(info.Full, *info.Re) &&
+            (info.File == fs::file_type::directory || !info.DirsOnly))
+        {
+            result.IsMatched = true;
+        }
+
+        return result;
     }
 } // namespace Ignorelib

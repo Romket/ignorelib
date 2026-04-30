@@ -24,17 +24,53 @@
 
 #pragma once
 
+#include <ignorelib/ignorelib.h>
 #include <ignorelib/pattern.h>
 
+#include <filesystem>
 #include <optional>
 #include <string_view>
+#include <vector>
+
+namespace fs = std::filesystem;
 
 namespace Ignorelib
 {
     class IgnoreUtils
     {
+    private:
+        friend class IgnoreFile;
+
+#ifdef IGNORELIB_TESTS
     public:
-        static std::optional<Pattern> ConvToPattern(std::string_view sv);
+#else
+    private:
+#endif
+        static std::optional<Pattern> convToPattern(std::string_view sv);
+
+    private:
+        static std::vector<size_t> findSeparators(std::string_view sv);
+
+        static IgnoreFile::Matched matches(IgnoreFile::MatchesInfo&& info);
+
+        template<typename Fn>
+        static void walk(const fs::path& dir, Fn&& f)
+        {
+            if (!fs::is_directory(dir)) return;
+
+            for (fs::recursive_directory_iterator it {dir};
+                 it != fs::recursive_directory_iterator {}; ++it)
+            {
+                fs::path      path {fs::relative(it->path(), dir)};
+                fs::file_type type {it->status().type()};
+
+                if constexpr (std::invocable<Fn&, const fs::path&,
+                                             const fs::file_type&>)
+                    f(path, type);
+                else
+                    f(it, path, type);
+            }
+        }
 
     private:
         // cppcheck-suppress unusedStructMember
