@@ -27,6 +27,8 @@
 #include <ignorelib/internal/ignoreutils.h>
 #include <ignorelib/pattern.h>
 
+#include <re2/re2.h>
+
 #include "test_load_file_constants.h"
 
 TEST(test_convert, convert)
