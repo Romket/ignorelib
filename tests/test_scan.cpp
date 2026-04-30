@@ -2,7 +2,7 @@
  * @file test_scan.cpp
  * @author Luke Houston (Romket) (lukehouston08@gmail.com)
  * @brief Tests for directory scanning functionality
- * @version 0.1
+ * @version 1.0 0.1
  * @date 2026-03-18
  *
  * @copyright Copyright (c) 2026 Luke Houston

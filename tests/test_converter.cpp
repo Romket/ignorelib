@@ -2,7 +2,7 @@
  * @file test_converter.cpp
  * @author Luke Houston (Romket) (lukehouston08@gmail.com)
  * @brief Test converting pattern strings to regex
- * @version 0.1
+ * @version 1.0 0.1
  * @date 2026-03-05
  *
  * @copyright Copyright (c) 2026 Luke Houston

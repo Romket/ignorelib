@@ -2,7 +2,7 @@
  * @file pattern.cpp
  * @author Luke Houston (Romket) (lukehouston08@gmail.com)
  * @brief Implements Pattern struct destructor
- * @version 0.1
+ * @version 1.0 0.1
  * @date 2026-04-30
  *
  * @copyright Copyright (c) 2026 Luke Houston
