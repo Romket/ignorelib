@@ -51,13 +51,6 @@ add_library(ignorelib::ignorelib ALIAS ignorelib)
 
 include(FetchContent)
 
-set(BUILD_SHARED_LIBS OFF)
-set(BUILD_TESTING OFF)
-
-set(ABSL_ENABLE_INSTALL ON)
-
-set(RE2_BUILD_TESTING OFF)
-
 find_package(absl QUIET)
 if(NOT absl_FOUND)
     FetchContent_Declare(
