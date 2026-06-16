@@ -24,9 +24,9 @@
 
 #include <gtest/gtest.h>
 
-#include <ignorelib/internal/ignoreutils.h>
 #include <ignorelib/pattern.h>
 
+#include "../src/internal/ignoreutils.h"
 #include "test_load_file_constants.h"
 
 TEST(test_convert, convert)
