@@ -27,6 +27,8 @@
 #include <algorithm>
 #include <fstream>
 
+#include "internal/ignoreutils.h"
+
 namespace Ignorelib
 {
     IgnoreFile::IgnoreFile(const fs::path& path)
@@ -112,6 +114,19 @@ namespace Ignorelib
         });
 
         return ignored;
+    }
+
+    void IgnoreFile::addPattern(std::string_view s)
+    {
+        if (s.empty() || s.front() == '#') return;
+
+        auto result = IgnoreUtils::ConvToPattern(s);
+        if (!result) return;
+
+        if (result->SepCount > _mostSeparators)
+            _mostSeparators = result->SepCount;
+
+        _patterns.push_back(std::move(*result));
     }
 
     bool IgnoreFile::ignoredUtil(const fs::path& path,

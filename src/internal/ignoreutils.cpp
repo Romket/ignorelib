@@ -22,7 +22,7 @@
  *
  */
 
-#include <ignorelib/internal/ignoreutils.h>
+#include "ignoreutils.h"
 
 namespace Ignorelib
 {
