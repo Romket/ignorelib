@@ -2,7 +2,7 @@
  * @file ignoreutils.h
  * @author Luke Houston (Romket) (lukehouston08@gmail.com)
  * @brief Internal ignorelib utility functions
- * @version 0.1
+ * @version 1.0
  * @date 2026-03-04
  *
  * @copyright Copyright (c) 2026 Luke Houston

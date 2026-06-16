@@ -2,7 +2,7 @@
  * @file test_patterns.cpp
  * @author Luke Houston (Romket) (lukehouston08@gmail.com)
  * @brief Test different patterns
- * @version 0.1
+ * @version 1.0
  * @date 2026-02-24
  *
  * @copyright Copyright (c) 2026 Luke Houston
