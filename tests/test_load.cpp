@@ -25,7 +25,6 @@
 #include <gtest/gtest.h>
 
 #include <ignorelib/ignorelib.h>
-#include <ignorelib/internal/ignoreutils.h>
 
 #include <re2/re2.h>
 
