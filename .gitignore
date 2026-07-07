@@ -3,3 +3,5 @@ build
 
 # Doxygen output files
 docs
+
+.vscode
