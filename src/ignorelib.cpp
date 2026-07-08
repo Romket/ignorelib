@@ -2,7 +2,7 @@
  * @file ignorelib.cpp
  * @author Luke Houston (Romket) (lukehouston08@gmail.com)
  * @brief Main source file
- * @version 0.1
+ * @version 1.1
  * @date 2026-02-06
  *
  * @copyright Copyright (c) 2026 Luke Houston
@@ -24,8 +24,12 @@
 
 #include <ignorelib/ignorelib.h>
 
+#include <re2/re2.h>
+
 #include <algorithm>
 #include <fstream>
+
+#include "internal/ignoreutils.h"
 
 namespace Ignorelib
 {
@@ -112,6 +116,19 @@ namespace Ignorelib
         });
 
         return ignored;
+    }
+
+    void IgnoreFile::addPattern(std::string_view s)
+    {
+        if (s.empty() || s.front() == '#') return;
+
+        auto result = IgnoreUtils::ConvToPattern(s);
+        if (!result) return;
+
+        if (result->SepCount > _mostSeparators)
+            _mostSeparators = result->SepCount;
+
+        _patterns.push_back(std::move(*result));
     }
 
     bool IgnoreFile::ignoredUtil(const fs::path& path,

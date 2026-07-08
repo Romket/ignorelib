@@ -41,6 +41,16 @@ FetchContent_MakeAvailable(googletest)
 #----------------------------------------------------------------------------------------------------------------------
 
 if(is_top_level)
+    find_package(re2 QUIET)
+    if(NOT re2_FOUND)
+        FetchContent_Declare(
+            re2
+            GIT_REPOSITORY https://github.com/google/re2.git
+            GIT_TAG 2025-11-05
+        )
+        FetchContent_MakeAvailable(re2)
+    endif()
+
     find_package(ignorelib REQUIRED)
 endif()
 
@@ -68,6 +78,7 @@ target_sources(ignorelib-tests PRIVATE ${sources})
 target_link_libraries(ignorelib-tests
     PRIVATE
         ignorelib::ignorelib
+        re2::re2
         gtest_main)
 
 if(NOT is_top_level)

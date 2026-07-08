@@ -2,7 +2,7 @@
  * @file test_converter.cpp
  * @author Luke Houston (Romket) (lukehouston08@gmail.com)
  * @brief Test converting pattern strings to regex
- * @version 0.1
+ * @version 1.1
  * @date 2026-03-05
  *
  * @copyright Copyright (c) 2026 Luke Houston
@@ -24,9 +24,11 @@
 
 #include <gtest/gtest.h>
 
-#include <ignorelib/internal/ignoreutils.h>
 #include <ignorelib/pattern.h>
 
+#include <re2/re2.h>
+
+#include "../src/internal/ignoreutils.h"
 #include "test_load_file_constants.h"
 
 TEST(test_convert, convert)

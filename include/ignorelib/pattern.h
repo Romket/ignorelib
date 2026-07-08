@@ -2,7 +2,7 @@
  * @file pattern.h
  * @author Luke Houston (Romket) (lukehouston08@gmail.com)
  * @brief Pattern struct definition
- * @version 0.1
+ * @version 1.1
  * @date 2026-03-04
  *
  * @copyright Copyright (c) 2026 Luke Houston
@@ -24,9 +24,12 @@
 
 #pragma once
 
-#include <re2/re2.h>
-
 #include <memory>
+
+namespace re2
+{
+    class RE2;
+};
 
 namespace Ignorelib
 {

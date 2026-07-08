@@ -2,7 +2,7 @@
  * @file test_scan_patterns.h
  * @author Luke Houston (Romket) (lukehouston08@gmail.com)
  * @brief Patterns to use to test directory scanning
- * @version 0.1
+ * @version 1.1
  * @date 2026-03-19
  *
  * @copyright Copyright (c) 2026 Luke Houston

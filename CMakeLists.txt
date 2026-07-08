@@ -76,8 +76,7 @@ if(NOT re2_FOUND)
     FetchContent_MakeAvailable(re2)
 endif()
 
-# TODO: link as private interface
-target_link_libraries(ignorelib PUBLIC re2::re2)
+target_link_libraries(ignorelib PRIVATE re2::re2)
 
 #----------------------------------------------------------------------------------------------------------------------
 # ignorelib sources
