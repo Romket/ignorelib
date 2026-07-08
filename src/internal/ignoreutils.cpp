@@ -2,7 +2,7 @@
  * @file ignoreutils.cpp
  * @author Luke Houston (Romket) (lukehouston08@gmail.com)
  * @brief Internal utility function implementations
- * @version 1.0
+ * @version 1.1
  * @date 2026-03-04
  *
  * @copyright Copyright (c) 2026 Luke Houston

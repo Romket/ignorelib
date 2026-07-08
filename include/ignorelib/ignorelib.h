@@ -2,7 +2,7 @@
  * @file ignorelib.h
  * @author Luke Houston (Romket) (lukehouston08@gmail.com)
  * @brief Main header file for ignorelib
- * @version 1.0
+ * @version 1.1
  * @date 2026-02-06
  *
  * @copyright Copyright (c) 2026 Luke Houston

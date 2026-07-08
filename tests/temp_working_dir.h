@@ -2,7 +2,7 @@
  * @file temp_working_dir.h
  * @author Luke Houston (Romket) (lukehouston08@gmail.com)
  * @brief Creates an empty temporary working directory for testing
- * @version 1.0
+ * @version 1.1
  * @date 2026-03-18
  *
  * @copyright Copyright (c) 2026 Luke Houston
