@@ -24,9 +24,12 @@
 
 #pragma once
 
-#include <re2/re2.h>
-
 #include <memory>
+
+namespace re2
+{
+    class RE2;
+};
 
 namespace Ignorelib
 {

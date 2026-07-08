@@ -26,6 +26,8 @@
 
 #include <ignorelib/pattern.h>
 
+#include <re2/re2.h>
+
 #include "../src/internal/ignoreutils.h"
 #include "test_load_file_constants.h"
 

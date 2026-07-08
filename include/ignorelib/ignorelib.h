@@ -26,8 +26,6 @@
 
 #include <ignorelib/pattern.h>
 
-#include <re2/re2.h>
-
 #include <filesystem>
 #include <ranges>
 #include <string>
