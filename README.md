@@ -29,9 +29,19 @@ endif()
 
 ## Usage
 
-### 1. Include the header file `ignorelib/ignorelib.h`. This file contains everything you need to fully utilize ignorelib.
+### 1. Include the header file `ignorelib/ignorelib.h`.
 
-### 2. Create an `IgnoreLib::IgnoreFile` object. There are a few ways to do this, such as pointing to a .gitignore-style file containing patterns, refered to as an ignore file, passing in a list of patterns, or passing a list of pre-constructed `IgnoreLib::Pattern` objects.
+This file contains everything you need to fully utilize ignorelib.
+
+```cpp
+#include <ignorelib/ignorelib.h>
+```
+
+### 2. Create an `IgnoreLib::IgnoreFile` object.
+
+There are a few ways to do this, such as pointing to a .gitignore-style file
+containing patterns, refered to as an ignore file, passing in a list of
+patterns, or passing a list of pre-constructed `IgnoreLib::Pattern` objects.
 
 #### _Passing a path to an ignore file_
 
@@ -66,9 +76,9 @@ This is likely to be the least useful way to construct an
 pattern to regex conversions, but it does allow you to integrate custom regex
 strings into the search.
 
-[!IMPORTANT]
-This method also requires the [re2](https://github.com/google/re2) library from
-Google.
+> [!IMPORTANT]
+> This method also requires the [re2](https://github.com/google/re2) library
+> from Google.
 
 ```cpp
 #include <ignorelib/ignorelib.h>
@@ -94,7 +104,9 @@ void LoadFromIgnoreLibPatternExample()
 More information about the constructors for the IgnoreFile class can be found in
 the [documentation](#documentation).
 
-### 3. Find ignored/included files. You can either scan a directory or check an individual path.
+### 3. Find ignored/included files.
+
+You can either scan a directory or check an individual path.
 
 #### _Scanning directories_
 
@@ -138,10 +150,10 @@ void CheckFileExample()
 }
 ```
 
-[!NOTE]
-The "fast" behavior refers to gitignore's behavior, where an ignored path will
-exclude all contained files, even if a contained file is later re-included. The
-"full" behavior will re-include this, but it is slower.
+> [!NOTE]
+> The "fast" behavior refers to gitignore's behavior, where an ignored path will
+> exclude all contained files, even if a contained file is later re-included.
+> The "full" behavior will re-include this, but it is slower.
 
 ## Documentation
 
