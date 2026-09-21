@@ -31,12 +31,14 @@
 
 #include "test_scan_patterns.h"
 
+#define DIR_NAME_LENGTH 16
+
 class TempWorkingDir
 {
 public:
-    inline TempWorkingDir() :
+    TempWorkingDir() :
         _base {std::filesystem::current_path()},
-        _temp {_base / "tmp" / randomDir(16)}
+        _temp {_base / "tmp" / randomDir(DIR_NAME_LENGTH)}
     {
         std::filesystem::create_directories(_temp);
 
@@ -49,14 +51,14 @@ public:
             std::ofstream {std::filesystem::path {file}};
     }
 
-    inline ~TempWorkingDir()
+    ~TempWorkingDir()
     {
         std::filesystem::current_path(_base);
         std::filesystem::remove_all(_temp);
     }
 
 private:
-    inline static std::string randomDir(size_t&& len)
+    static std::string randomDir(size_t&& len)
     {
         std::string chars = "0123456789"
                             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

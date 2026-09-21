@@ -38,7 +38,7 @@ namespace fs = std::filesystem;
 /**
  * @brief Main Ignorelib namespace.
  */
-namespace Ignorelib
+namespace ignorelib
 {
     /**
      * @brief A class representing a .gitignore-style file.
@@ -96,20 +96,18 @@ namespace Ignorelib
          * @sa Pattern
          */
         template<std::ranges::input_range R>
-            requires(
-                std::convertible_to<std::ranges::range_value_t<R>, Pattern> &&
-                !std::same_as<std::remove_cvref_t<R>, IgnoreFile> &&
-                !std::convertible_to<std::ranges::range_value_t<R>,
-                                     std::string_view>)
-        explicit inline IgnoreFile(const R& patterns) :
+            requires(std::convertible_to<std::ranges::range_value_t<R>, Pattern>
+                     && !std::same_as<std::remove_cvref_t<R>, IgnoreFile>
+                     && !std::convertible_to<std::ranges::range_value_t<R>,
+                                             std::string_view>)
+        explicit IgnoreFile(const R& patterns) :
             _patterns {patterns.begin(), patterns.end()}
         {}
 
         template<std::ranges::input_range R>
-            requires(
-                std::convertible_to<std::ranges::range_value_t<R>, Pattern> &&
-                !std::same_as<std::remove_cvref_t<R>, IgnoreFile>)
-        explicit inline IgnoreFile(R&& patterns) :
+            requires(std::convertible_to<std::ranges::range_value_t<R>, Pattern>
+                     && !std::same_as<std::remove_cvref_t<R>, IgnoreFile>)
+        explicit IgnoreFile(R&& patterns) :
             _patterns {std::move(patterns.begin()), std::move(patterns.end())}
         {}
 
@@ -200,7 +198,7 @@ namespace Ignorelib
          * @return false The path is not ignored.
          */
         bool IgnoredFast(const fs::path& path,
-                         fs::file_type   type = fs::file_type::regular) const
+                         fs::file_type type = fs::file_type::regular) const
         { return ignoredUtil(path, type, false); }
 
         /**
@@ -217,7 +215,7 @@ namespace Ignorelib
          * @return false The path is not ignored.
          */
         bool IgnoredFull(const fs::path& path,
-                         fs::file_type   type = fs::file_type::regular) const
+                         fs::file_type type = fs::file_type::regular) const
         { return ignoredUtil(path, type, true); }
 
         /**
@@ -335,31 +333,30 @@ namespace Ignorelib
     private:
         struct MatchesInfo
         {
-            std::string               First;
-            std::string               Full;
+            std::string First;
+            std::string Full;
             std::shared_ptr<re2::RE2> Re;
-            fs::file_type             File;
-            bool                      DirsOnly;
+            fs::file_type File;
+            bool DirsOnly;
         };
 
         struct Matched
         {
-            bool IsMatched      = false;
+            bool IsMatched = false;
             bool EarlyReturnMet = false;
         };
 
         struct SeparatorInfo
         {
-            std::vector<size_t> Separators {};
-            std::vector<size_t> Found {};
+            std::vector<size_t> Separators;
+            std::vector<size_t> Found;
         };
 
     private:
         void addPattern(std::string_view s);
 
-        bool ignoredUtil(const fs::path& path,
-                         fs::file_type   type,
-                         bool            isFullMatch) const;
+        bool ignoredUtil(const fs::path& path, fs::file_type type,
+                         bool isFullMatch) const;
 
         static std::vector<size_t> findSeparators(std::string_view sv);
 
@@ -373,7 +370,7 @@ namespace Ignorelib
             for (fs::recursive_directory_iterator it {dir};
                  it != fs::recursive_directory_iterator {}; ++it)
             {
-                fs::path      path {fs::relative(it->path(), dir)};
+                fs::path path {fs::relative(it->path(), dir)};
                 fs::file_type type {it->status().type()};
 
                 if constexpr (std::invocable<Fn&, const fs::path&,
@@ -387,11 +384,11 @@ namespace Ignorelib
         SeparatorInfo getSeparatorInfo(std::string_view pathStr) const;
 
         static size_t getLoopInfo(const SeparatorInfo& sepInfo,
-                                  const Pattern&       pattern);
+                                  const Pattern& pattern);
 
     private:
         std::vector<Pattern> _patterns;
 
         size_t _mostSeparators {0};
     };
-} // namespace Ignorelib
+} // namespace ignorelib

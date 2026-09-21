@@ -35,7 +35,7 @@ TEST(test_convert, convert)
 {
     for (int i {2}; i < numLines; ++i)
     {
-        auto result = Ignorelib::IgnoreUtils::ConvToPattern(lines[i]);
+        auto result = ignorelib::IgnoreUtils::ConvToPattern(lines[i]);
 
         ASSERT_TRUE(result);
 
