@@ -216,6 +216,7 @@ WarningsAsErrors: >
   clang-analyzer-core.UndefinedBinaryOperatorResult,
 
 HeaderFilterRegex: '.*'
+ExcludeHeaderFilterRegex: '_deps/'
 
 FormatStyle: file
 
