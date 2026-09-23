@@ -44,5 +44,12 @@ jobs:
       - name: Setup pre-commit
         run: pre-commit install
 
+      - name: Build repository
+        run: |
+          mkdir build && mkdir build
+          cmake ..
+          cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=rel-linux .
+          cmake --build .
+
       - name: Run pre-commit
         run: pre-commit run --all-files
