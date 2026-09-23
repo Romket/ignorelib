@@ -37,11 +37,11 @@ This file contains everything you need to fully utilize ignorelib.
 #include <ignorelib/ignorelib.h>
 ```
 
-### 2. Create an `IgnoreLib::IgnoreFile` object.
+### 2. Create an `ignorelib::IgnoreFile` object.
 
 There are a few ways to do this, such as pointing to a .gitignore-style file
 containing patterns, refered to as an ignore file, passing in a list of
-patterns, or passing a list of pre-constructed `IgnoreLib::Pattern` objects.
+patterns, or passing a list of pre-constructed `ignorelib::Pattern` objects.
 
 #### _Passing a path to an ignore file_
 
@@ -54,7 +54,7 @@ accept user input for the files to ignore.
 
 void LoadFromFileExample()
 {
-    IgnoreLib::IgnoreFile file("path/to/ignorefile");
+    ignorelib::IgnoreFile file("path/to/ignorefile");
 }
 ```
 
@@ -65,14 +65,14 @@ void LoadFromFileExample()
 
 void LoadFromPatternListExample()
 {
-    IgnoreLib::IgnoreFile file{"ignore/this.file", "!**/more[120a-q]/**/complicated?/pattern\\[/*"};
+    ignorelib::IgnoreFile file{"ignore/this.file", "!**/more[120a-q]/**/complicated?/pattern\\[/*"};
 }
 ```
 
-#### _Passing a list of `IgnoreLib::Pattern` objects_
+#### _Passing a list of `ignorelib::Pattern` objects_
 
 This is likely to be the least useful way to construct an
-`IgnoreLib::IgnoreFile` object, as ignorelib will not take care of any of the
+`ignorelib::IgnoreFile` object, as ignorelib will not take care of any of the
 pattern to regex conversions, but it does allow you to integrate custom regex
 strings into the search.
 
@@ -85,19 +85,19 @@ strings into the search.
 
 #include <re2/re2.h>
 
-void LoadFromIgnoreLibPatternExample()
+void LoadFromignorelibPatternExample()
 {
-    IgnoreLib::Pattern p1;
+    ignorelib::Pattern p1;
     p1.Re = std::make_shared<re2::RE2>("path(?:\\/.*\\/|\\/)to\\/[^\\/\\\\]*\\.file");
 
     // The following members have default values that can be found
-    // in the documentation for IgnoreLib::Pattern
+    // in the documentation for ignorelib::Pattern
     p1.Negated = true;
     p1.TopLevelOnly = true;
     p1.DirsOnly = false;
     p1.SepCount = 1;
 
-    IgnoreLib::IgnoreFile file{p1};
+    ignorelib::IgnoreFile file{p1};
 }
 ```
 
@@ -117,7 +117,7 @@ namespace fs = std::filesystem;
 
 void ScanDirectoryExample()
 {
-    IgnoreLib::IgnoreFile f("path/to/ignorefile");
+    ignorelib::IgnoreFile f("path/to/ignorefile");
 
     fs::path toScan = "path/to/directory";
 
@@ -138,7 +138,7 @@ namespace fs = std::filesystem;
 
 void CheckFileExample()
 {
-    IgnoreLib::IgnoreFile f("path/to/ignorefile");
+    ignorelib::IgnoreFile f("path/to/ignorefile");
 
     fs::path file = "path/to.file";
 

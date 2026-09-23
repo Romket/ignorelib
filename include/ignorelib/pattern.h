@@ -26,12 +26,9 @@
 
 #include <memory>
 
-namespace re2
-{
-    class RE2;
-};
+namespace re2 { class RE2; };
 
-namespace Ignorelib
+namespace ignorelib
 {
     /**
      * @brief Struct representing a single ignore pattern.
@@ -66,4 +63,4 @@ namespace Ignorelib
          */
         size_t SepCount {0};
     };
-} // namespace Ignorelib
+} // namespace ignorelib
