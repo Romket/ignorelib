@@ -215,8 +215,7 @@ WarningsAsErrors: >
   clang-analyzer-core.NullDereference,
   clang-analyzer-core.UndefinedBinaryOperatorResult,
 
-HeaderFilterRegex: '.*'
-ExcludeHeaderFilterRegex: '_deps/'
+HeaderFilterRegex: '.*(examples|include|src|tests).*'
 
 FormatStyle: file
 
