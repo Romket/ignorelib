@@ -69,14 +69,15 @@ namespace ignorelib
             {
                 // re2 has certain reserved escape codes, check
                 // against escapes to see what needs to be escaped.
+                std::string next;
+
                 if (escapes.find(start[i + 1]) != std::string_view::npos)
-                    return std::string {'\\', start[++i]};
-                return std::string {start[++i]};
+                    next = {'\\', start[++i]};
+                return next + std::string {start[++i]};
             }
             else
                 // option for invalid pattern
                 return std::nullopt;
-            break;
         case '*':
             if (i + 1 == start.size())
                 // any characters if at the end of the pattern
@@ -84,37 +85,44 @@ namespace ignorelib
             else
                 // any characters except directory separators
                 return R"([^\/\\]*)";
-            break;
         case '.':
             return "\\.";
-            break;
         case '/':
-            if (i + 3 < start.size() && start.substr(i, 4) == "/**/")
+            if (i == 0)
+            {
+                p.TopLevelOnly = true;
+                return "";
+            }
+            else if (i + 3 < start.size() && start.substr(i, 4) == "/**/")
             {
                 // any number of directories
-                return R"((?:\/.*\/|\/))";
                 i += 3;
+                return R"((?:\/.*\/|\/))";
             }
             else if (i + 3 == start.size() && start.substr(i, 3) == "/**")
+            {
                 // any contained path, same as '/*'
                 return "\\/.*";
+            }
             else if (i + 1 == start.size())
+            {
                 // pattern ends with '/', indicates pattern only matches
                 // directories
                 p.DirsOnly = true;
+                return "";
+            }
             else
             {
                 p.TopLevelOnly = true;
                 if (i > 0)
                 {
-                    return "\\/";
                     ++p.SepCount;
+                    return "\\/";
                 }
             }
             break;
         case '?':
             return "[^\\/]";
-            break;
         }
 
         return std::string {start[i]};
