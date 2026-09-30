@@ -30,32 +30,37 @@
 // directory scanning works correctly. Rigorous pattern matching testing is
 // performed in test_ignore.cpp
 
-constexpr int              numScanPatterns = 5;
-constexpr std::string_view scanPatterns[numScanPatterns] {"a", "!a/c", "#c",
-                                                          "d[0-9]", "**/x/y"};
+constexpr int numScanPatterns = 5;
+constexpr std::string_view scanPatterns[numScanPatterns] {
+    "a", "!a/c", "#c", "d[0-9]", "**/x/y"
+};
 
 constexpr std::string_view subdirs[] {"a", "b", "b/x"};
 
-constexpr int              numScanFiles = 6;
+constexpr int numScanFiles = 6;
 constexpr std::string_view scanFiles[numScanFiles] {"a/b", "a/c", "b/x/y",
                                                     "#c",  "d1",  "da"};
 
 //* List<type>Fast
 
-constexpr int              numFastScanIgnored = 4;
+constexpr int numFastScanIgnored = 4;
 constexpr std::string_view fastScanIgnoredExpected[numFastScanIgnored] {
-    "a/b", "a/c", "b/x/y", "d1"};
+    "a/b", "a/c", "b/x/y", "d1"
+};
 
 constexpr int numFastScanIncluded = numScanFiles - numFastScanIgnored;
-constexpr std::string_view fastScanIncludedExpected[numFastScanIncluded] {"#c",
-                                                                          "da"};
+constexpr std::string_view fastScanIncludedExpected[numFastScanIncluded] {
+    "#c", "da"
+};
 
 //* List<type>Full
 
-constexpr int              numFullScanIgnored = 3;
+constexpr int numFullScanIgnored = 3;
 constexpr std::string_view fullScanIgnoredExpected[numFullScanIgnored] {
-    "a/b", "b/x/y", "d1"};
+    "a/b", "b/x/y", "d1"
+};
 
 constexpr int numFullScanIncluded = numScanFiles - numFullScanIgnored;
 constexpr std::string_view fullScanIncludedExpected[numFullScanIncluded] {
-    "a/c", "#c", "da"};
+    "a/c", "#c", "da"
+};

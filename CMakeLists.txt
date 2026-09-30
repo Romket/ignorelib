@@ -192,3 +192,17 @@ if(IGNORELIB_BUILD_DOCS)
     find_package(Doxygen REQUIRED)
     doxygen_add_docs(docs include)
 endif()
+
+#----------------------------------------------------------------------------------------------------------------------
+# custom commands
+#----------------------------------------------------------------------------------------------------------------------
+
+if (PROJECT_IS_TOP_LEVEL AND CMAKE_EXPORT_COMPILE_COMMANDS)
+    add_custom_command(TARGET ignorelib POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${CMAKE_BINARY_DIR}/compile_commands.json
+            ${CMAKE_BINARY_DIR}/../compile_commands.json
+        COMMENT "Copying compile_commands.json"
+        VERBATIM
+    )
+endif()

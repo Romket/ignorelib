@@ -24,9 +24,10 @@
 
 #include "ignoreutils.h"
 
+#include <cstddef>
 #include <re2/re2.h>
 
-namespace Ignorelib
+namespace ignorelib
 {
     std::optional<Pattern> IgnoreUtils::ConvToPattern(std::string_view sv)
     {
@@ -34,68 +35,21 @@ namespace Ignorelib
 
         Pattern p;
 
-        p.Negated                      = sv.starts_with('!');
-        std::string_view negateRemoved = sv.substr(p.Negated);
+        p.Negated = sv.starts_with('!');
+        std::string_view negateRemoved = sv.substr(
+            static_cast<size_t>(p.Negated));
 
-        bool             anyLevel = negateRemoved.starts_with("**/");
-        std::string_view start    = negateRemoved.substr(3 * anyLevel);
+        bool anyLevel = negateRemoved.starts_with("**/");
+        std::string_view start = negateRemoved.substr(
+            3 * static_cast<size_t>(anyLevel));
 
         for (size_t i {0}; i < start.size(); ++i)
         {
-            switch (start[i])
-            {
-                case '\\':
-                    if (i + 1 < start.size())
-                    {
-                        // re2 has certain reserved escape codes, check against
-                        // _escapes to see what needs to be escaped.
-                        if (_escapes.find(start[i + 1]) !=
-                            std::string_view::npos)
-                            regexStr.push_back(start[i]);
-                        ++i;
-                        regexStr.push_back(start[i]);
-                    }
-                    else
-                        // option for invalid pattern
-                        return std::nullopt;
-                    break;
-                case '*':
-                    if (i + 1 == start.size())
-                        // any characters if at the end of the pattern
-                        regexStr += ".*";
-                    else
-                        // any characters except directory separators
-                        regexStr += "[^\\/\\\\]*";
-                    break;
-                case '.': regexStr += "\\."; break;
-                case '/':
-                    if (i + 3 < start.size() && start.substr(i, 4) == "/**/")
-                    {
-                        // any number of directories
-                        regexStr += "(?:\\/.*\\/|\\/)";
-                        i += 3;
-                    }
-                    else if (i + 3 == start.size() &&
-                             start.substr(i, 3) == "/**")
-                        // any contained path, same as '/*'
-                        regexStr += "\\/.*";
-                    else if (i + 1 == start.size())
-                        // pattern ends with '/', indicates pattern only matches
-                        // directories
-                        p.DirsOnly = true;
-                    else
-                    {
-                        p.TopLevelOnly = true;
-                        if (i > 0)
-                        {
-                            regexStr += "\\/";
-                            ++p.SepCount;
-                        }
-                    }
-                    break;
-                case '?': regexStr += "[^\\/]"; break;
-                default: regexStr.push_back(start[i]);
-            }
+            auto el = getNextElement(start, i, p);
+            if (el)
+                regexStr += el.value();
+            else
+                return std::nullopt;
         }
 
         if (anyLevel) p.TopLevelOnly = false;
@@ -103,4 +57,74 @@ namespace Ignorelib
         p.Re = std::make_shared<re2::RE2>(regexStr);
         return p;
     }
-} // namespace Ignorelib
+
+    std::optional<std::string>
+        IgnoreUtils::getNextElement(std::string_view start, size_t& i,
+                                    Pattern& p)
+    {
+        switch (start[i])
+        {
+        case '\\':
+            if (i + 1 < start.size())
+            {
+                // re2 has certain reserved escape codes, check
+                // against escapes to see what needs to be escaped.
+                std::string next;
+
+                if (escapes.find(start[i + 1]) != std::string_view::npos)
+                    next = {'\\', start[++i]};
+                return next + std::string {start[++i]};
+            }
+            else
+                // option for invalid pattern
+                return std::nullopt;
+        case '*':
+            if (i + 1 == start.size())
+                // any characters if at the end of the pattern
+                return ".*";
+            else
+                // any characters except directory separators
+                return R"([^\/\\]*)";
+        case '.':
+            return "\\.";
+        case '/':
+            if (i == 0)
+            {
+                p.TopLevelOnly = true;
+                return "";
+            }
+            else if (i + 3 < start.size() && start.substr(i, 4) == "/**/")
+            {
+                // any number of directories
+                i += 3;
+                return R"((?:\/.*\/|\/))";
+            }
+            else if (i + 3 == start.size() && start.substr(i, 3) == "/**")
+            {
+                // any contained path, same as '/*'
+                return "\\/.*";
+            }
+            else if (i + 1 == start.size())
+            {
+                // pattern ends with '/', indicates pattern only matches
+                // directories
+                p.DirsOnly = true;
+                return "";
+            }
+            else
+            {
+                p.TopLevelOnly = true;
+                if (i > 0)
+                {
+                    ++p.SepCount;
+                    return "\\/";
+                }
+            }
+            break;
+        case '?':
+            return "[^\\/]";
+        }
+
+        return std::string {start[i]};
+    }
+} // namespace ignorelib

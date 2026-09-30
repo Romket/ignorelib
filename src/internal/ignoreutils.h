@@ -27,9 +27,10 @@
 #include <ignorelib/pattern.h>
 
 #include <optional>
+#include <string>
 #include <string_view>
 
-namespace Ignorelib
+namespace ignorelib
 {
     class IgnoreUtils
     {
@@ -37,7 +38,10 @@ namespace Ignorelib
         static std::optional<Pattern> ConvToPattern(std::string_view sv);
 
     private:
+        static std::optional<std::string> getNextElement(std::string_view start,
+                                                         size_t& i, Pattern& p);
+
         // cppcheck-suppress unusedStructMember
-        constexpr static std::string_view _escapes = "\\!#?*[ ";
+        constexpr static std::string_view escapes = "\\!#?*[ ";
     };
-} // namespace Ignorelib
+} // namespace ignorelib

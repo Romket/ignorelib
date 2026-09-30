@@ -30,7 +30,7 @@ namespace fs = std::filesystem;
 
 TEST(test_ignore, blank_line)
 {
-    Ignorelib::IgnoreFile file {""};
+    ignorelib::IgnoreFile file {""};
 
     //* IgnoredFast testing
 
@@ -45,7 +45,7 @@ TEST(test_ignore, blank_line)
 
 TEST(test_ignore, comment)
 {
-    Ignorelib::IgnoreFile file {"#comment", "\\#escaped"};
+    ignorelib::IgnoreFile file {"#comment", "\\#escaped"};
 
     //* IgnoredFast testing
 
@@ -66,8 +66,9 @@ TEST(test_ignore, comment)
 
 TEST(test_ignore, negate)
 {
-    Ignorelib::IgnoreFile file {"pattern", "!negated", "\\!negated", "a",
-                                "!a/contained"};
+    ignorelib::IgnoreFile file {
+        "pattern", "!negated", "\\!negated", "a", "!a/contained"
+    };
 
     //* IgnoredFast testing
 
@@ -94,7 +95,7 @@ TEST(test_ignore, negate)
 
 TEST(test_ignore, dir_separators)
 {
-    Ignorelib::IgnoreFile file {"a", "/b", "c/d/"};
+    ignorelib::IgnoreFile file {"a", "/b", "c/d/"};
 
     //* IgnoredFast testing
 
@@ -125,7 +126,7 @@ TEST(test_ignore, dir_separators)
 
 TEST(test_ignore, wildcard)
 {
-    Ignorelib::IgnoreFile file {"a*b", "c?d"};
+    ignorelib::IgnoreFile file {"a*b", "c?d"};
 
     //* IgnoredFast testing
 
@@ -154,7 +155,7 @@ TEST(test_ignore, wildcard)
 
 TEST(test_ignore, character_class)
 {
-    Ignorelib::IgnoreFile file {"a[a-z]", "b[0-9]",  "c[A-Z]",
+    ignorelib::IgnoreFile file {"a[a-z]", "b[0-9]",  "c[A-Z]",
                                 "d[123]", "e[^a-z]", "f\\[ab]"};
 
     //* IgnoredFast testing
@@ -220,7 +221,7 @@ TEST(test_ignore, character_class)
 
 TEST(test_ignore, escaped)
 {
-    Ignorelib::IgnoreFile file {"\\a", "\\\\b", "c\\"};
+    ignorelib::IgnoreFile file {"\\a", "\\\\b", "c\\"};
 
     //* IgnoredFast testing
 
@@ -247,7 +248,7 @@ TEST(test_ignore, escaped)
 
 TEST(test_ignore, double_asterisk)
 {
-    Ignorelib::IgnoreFile file {"a/**/b", "c/**", "**/d", "**/e/f"};
+    ignorelib::IgnoreFile file {"a/**/b", "c/**", "**/d", "**/e/f"};
 
     //* IgnoredFast testing
 
@@ -300,7 +301,7 @@ TEST(test_ignore, double_asterisk)
 
 TEST(test_ignore, re_reserved)
 {
-    Ignorelib::IgnoreFile file {"a.b"};
+    ignorelib::IgnoreFile file {"a.b"};
 
     //* IgnoredFast testing
 

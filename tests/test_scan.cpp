@@ -31,7 +31,7 @@
 
 TEST(test_scan, list_ignored)
 {
-    Ignorelib::IgnoreFile file {scanPatterns};
+    ignorelib::IgnoreFile file {scanPatterns};
 
     TempWorkingDir temp;
 
@@ -66,7 +66,7 @@ TEST(test_scan, list_ignored)
 
 TEST(test_scan, list_included)
 {
-    Ignorelib::IgnoreFile file {scanPatterns};
+    ignorelib::IgnoreFile file {scanPatterns};
 
     TempWorkingDir temp;
 
