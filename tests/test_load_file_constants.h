@@ -24,14 +24,14 @@
 
 #include <string_view>
 
-constexpr int numLines = 11;
+constexpr int numLines = 13;
 constexpr std::string_view lines[numLines] = {
-    "# ignored",       "",        "ignore",    "!negate", "charclass[0-9]",
-    "file.extension",  "path/to", "pattern#x", "dir/*",   "dir/*.ext",
-    "dir/**/otherFile"
+    "# ignored",        "",        "ignore",    "!negate", "charclass[0-9]",
+    "file.extension",   "path/to", "pattern#x", "dir/*",   "dir/*.ext",
+    "dir/**/otherFile", "a/b/",    "/b"
 };
 
-constexpr int numPatterns = 9;
+constexpr int numPatterns = 11;
 constexpr std::string_view patterns[numPatterns] = {
     "ignore",
     "negate",
@@ -41,9 +41,11 @@ constexpr std::string_view patterns[numPatterns] = {
     "pattern#x",
     "dir\\/.*",
     R"(dir\/[^\/\\]*\.ext)",
-    R"(dir(?:\/.*\/|\/)otherFile)"
+    R"(dir(?:\/.*\/|\/)otherFile)",
+    "a\\/b",
+    "b"
 };
 
-constexpr bool patternNegated[numPatterns] = {
-    false, true, false, false, false, false, false, false, false,
-};
+constexpr bool patternNegated[numPatterns] = {false, true,  false, false,
+                                              false, false, false, false,
+                                              false, false, false};
